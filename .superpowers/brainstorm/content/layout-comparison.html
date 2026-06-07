@@ -1,0 +1,116 @@
+﻿<h2>游戏伴侣 - 界面布局方案对比</h2>
+<p class="subtitle">请选择你喜欢的布局风格，我们可以在此基础上细化</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>右侧透明侧边栏</h3>
+      <p>半透明浮动面板固定在屏幕右侧，不遮挡游戏画面，信息流自上而下展示</p>
+      <div class="mockup" style="margin-top:12px;">
+        <div class="mockup-header">游戏伴侣 - 侧边栏布局</div>
+        <div class="mockup-body" style="padding:0;">
+          <div style="display:flex;background:#1a1a2e;border-radius:0 0 8px 8px;min-height:160px;">
+            <div style="flex:1;padding:8px;text-align:center;">
+              <div style="background:#16213e;border-radius:4px;padding:8px;margin:4px;border:1px dashed #0f3460;">
+                🎮 游戏画面区域
+              </div>
+            </div>
+            <div style="width:120px;background:rgba(255,255,255,0.08);border-left:1px solid rgba(255,255,255,0.1);padding:8px;font-size:11px;">
+              <div style="border-bottom:1px solid rgba(255,255,255,0.1);padding:4px;">💬 加油！</div>
+              <div style="padding:4px;color:#aaa;">🔍 搜索...</div>
+              <div style="padding:4px;margin-top:4px;background:rgba(255,255,255,0.05);border-radius:4px;font-size:10px;">弹幕: 太强了!</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>右下角浮动气泡面板</h3>
+      <p>类聊天头设计，可折叠为小气泡，展开为对话/信息面板，不占太多空间</p>
+      <div class="mockup" style="margin-top:12px;">
+        <div class="mockup-header">游戏伴侣 - 气泡布局</div>
+        <div class="mockup-body" style="padding:0;">
+          <div style="display:flex;background:#1a1a2e;border-radius:0 0 8px 8px;min-height:160px;position:relative;">
+            <div style="flex:1;padding:8px;text-align:center;">
+              <div style="background:#16213e;border-radius:4px;padding:8px;margin:4px;border:1px dashed #0f3460;">
+                🎮 游戏画面区域
+              </div>
+            </div>
+            <div style="position:absolute;bottom:8px;right:8px;width:140px;background:rgba(255,255,255,0.1);border-radius:12px;padding:10px;border:1px solid rgba(255,255,255,0.15);">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="width:24px;height:24px;border-radius:50%;background:#e94560;display:flex;align-items:center;justify-content:center;font-size:14px;">🤖</div>
+                <div style="flex:1;font-size:11px;">继续加油！</div>
+              </div>
+              <div style="margin-top:6px;font-size:10px;color:#aaa;">❌ 折叠</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>顶部透明工具栏 + 弹幕层</h3>
+      <p>顶部显示简明信息+搜索栏，弹幕从右向左飘过画面，伴侣发言在底部浮动显示</p>
+      <div class="mockup" style="margin-top:12px;">
+        <div class="mockup-header">游戏伴侣 - 工具栏+弹幕布局</div>
+        <div class="mockup-body" style="padding:0;">
+          <div style="display:flex;flex-direction:column;background:#1a1a2e;border-radius:0 0 8px 8px;min-height:160px;position:relative;">
+            <div style="background:rgba(255,255,255,0.06);padding:4px 8px;display:flex;gap:12px;font-size:10px;border-bottom:1px solid rgba(255,255,255,0.05);">
+              <span>💪 进度: 45%</span>
+              <span style="color:#aaa;">🔍 搜索攻略</span>
+              <span style="margin-left:auto;">⚙️</span>
+            </div>
+            <div style="flex:1;padding:8px;text-align:center;position:relative;">
+              <div style="background:#16213e;border-radius:4px;padding:8px;margin:4px;border:1px dashed #0f3460;">
+                🎮 游戏画面区域
+              </div>
+              <div style="position:absolute;top:20px;right:8px;background:rgba(233,69,96,0.8);color:#fff;padding:2px 8px;border-radius:12px;font-size:11px;animation:pulse 2s;">太强了！🎉</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>三种方案对比</h3>
+  <div class="pros-cons">
+    <div class="pros">
+      <h4>方案A：右侧侧边栏</h4>
+      <ul>
+        <li>信息展示量大，适合搜索教程和长回复</li>
+        <li>类似直播伴侣的布局，用户习惯</li>
+        <li>透明背景不影响游戏</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>方案B：浮动气泡</h4>
+      <ul>
+        <li>最小化遮挡，可折叠</li>
+        <li>适合简短鼓励和快速交互</li>
+        <li>长内容展示空间有限</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>方案C：顶部工具栏+弹幕</h4>
+      <ul>
+        <li>弹幕效果最有沉浸感</li>
+        <li>顶部空间常被游戏UI占用</li>
+        <li>信息密度最低</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <p>点击选择一个方案，然后告诉我你的想法！也可以直接在终端里回复你的意见。</p>
+</div>
