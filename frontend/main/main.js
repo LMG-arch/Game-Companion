@@ -46,8 +46,8 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
 
-  // 默认开启点击穿透（forward: true 允许接收鼠标移动事件）
-  mainWindow.setIgnoreMouseEvents(true, { forward: true });
+  // 不使用 setIgnoreMouseEvents，改用 CSS pointer-events 控制穿透
+  // 窗口始终接收鼠标事件，body 默认 pointer-events: none 让点击穿透
 
   // 确保窗口始终在最上层
   mainWindow.setAlwaysOnTop(true, 'screen-saver');
@@ -61,21 +61,6 @@ function createWindow() {
     mainWindow = null;
   });
 }
-
-// 监听渲染进程的点击穿透控制
-ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
-  if (mainWindow) {
-    mainWindow.setIgnoreMouseEvents(ignore, options || {});
-    if (!ignore) {
-      // 禁用穿透时，聚焦窗口以便接收输入
-      mainWindow.focus();
-      mainWindow.setAlwaysOnTop(true, 'screen-saver');
-    } else {
-      // 恢复穿透时确保窗口仍在最上层
-      mainWindow.setAlwaysOnTop(true, 'screen-saver');
-    }
-  }
-});
 
 /**
  * 应用启动
