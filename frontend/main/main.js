@@ -4,7 +4,7 @@
  * 创建透明覆盖窗口，管理 Python 子进程
  */
 
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const PythonManager = require('./python-manager');
 
@@ -35,6 +35,9 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
 
+  // 默认开启点击穿透（鼠标事件穿透到游戏）
+  mainWindow.setIgnoreMouseEvents(true, { forward: true });
+
   // 开发模式下打开 DevTools
   if (process.argv.includes('--dev')) {
     mainWindow.webContents.openDevTools({ mode: 'detach' });
@@ -44,6 +47,13 @@ function createWindow() {
     mainWindow = null;
   });
 }
+
+// 监听渲染进程的点击穿透控制
+ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
+  if (mainWindow) {
+    mainWindow.setIgnoreMouseEvents(ignore, options || {});
+  }
+});
 
 /**
  * 应用启动

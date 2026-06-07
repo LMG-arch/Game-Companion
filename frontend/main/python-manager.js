@@ -26,23 +26,24 @@ class PythonManager {
         fs.unlinkSync(this.portFile);
       }
 
-      // 启动 Python 进程
+      // 启动 Python 进程（设置 UTF-8 编码）
       this.process = spawn('python', ['-m', 'backend.main'], {
         cwd: path.join(__dirname, '..', '..'),
         stdio: ['pipe', 'pipe', 'pipe'],
-        shell: true
+        shell: true,
+        env: { ...process.env, PYTHONIOENCODING: 'utf-8' }
       });
 
-      // 监听输出
+      // 监听输出（使用 UTF-8 解码）
       this.process.stdout.on('data', (data) => {
-        const output = data.toString().trim();
+        const output = data.toString('utf-8').trim();
         if (output) {
           console.log(`[Python] ${output}`);
         }
       });
 
       this.process.stderr.on('data', (data) => {
-        const output = data.toString().trim();
+        const output = data.toString('utf-8').trim();
         if (output) {
           console.error(`[Python Error] ${output}`);
         }

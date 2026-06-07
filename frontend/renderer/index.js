@@ -62,4 +62,25 @@ document.getElementById('btn-question').addEventListener('click', () => {
   testResultEl.textContent = `已发送提问 (id: ${id})`;
 });
 
+// 点击穿透控制：鼠标进入可交互元素时禁用穿透，离开时恢复
+document.querySelectorAll('button, input, .interactive').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    ipcRenderer.send('set-ignore-mouse-events', false);
+  });
+  el.addEventListener('mouseleave', () => {
+    ipcRenderer.send('set-ignore-mouse-events', true, { forward: true });
+  });
+});
+
+// 测试区域整体可交互
+const testArea = document.getElementById('test-area');
+if (testArea) {
+  testArea.addEventListener('mouseenter', () => {
+    ipcRenderer.send('set-ignore-mouse-events', false);
+  });
+  testArea.addEventListener('mouseleave', () => {
+    ipcRenderer.send('set-ignore-mouse-events', true, { forward: true });
+  });
+}
+
 console.log('前端已加载');
