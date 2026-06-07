@@ -117,6 +117,13 @@ async def main():
 
     server.on("settings.get", handle_settings_get)
 
+    # AI 状态处理器
+    def handle_ai_status(payload: dict) -> dict:
+        """获取 AI 状态"""
+        return ai_engine.get_status()
+
+    server.on("ai.status", handle_ai_status)
+
     # 设置保存处理器
     def handle_settings_save(payload: dict) -> dict:
         """保存配置"""
@@ -159,6 +166,10 @@ async def main():
 
     async def on_frame(jpeg_bytes: bytes):
         """截图帧回调"""
+        # 检查 AI 是否可用
+        if not ai_engine.is_available():
+            return
+
         try:
             result = await ai_engine.analyze_image(
                 jpeg_bytes,

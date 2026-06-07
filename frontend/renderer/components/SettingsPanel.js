@@ -437,49 +437,69 @@ class SettingsPanel {
   }
 
   _collectConfig() {
-    // 收集所有设置项的值
+    // 收集所有设置项的值（只收集非空值，避免覆盖现有配置）
     const config = JSON.parse(JSON.stringify(this.config));
 
     // 通用
     config.general = config.general || {};
     config.general.auto_launch = this._getVal('s-auto-launch', 'checkbox');
-    config.general.language = this._getVal('s-language');
+    const language = this._getVal('s-language');
+    if (language) config.general.language = language;
 
     // UI
     config.ui = config.ui || {};
-    config.ui.opacity = parseInt(this._getVal('s-opacity', 'range') || 90);
-    config.ui.theme = this._getVal('s-theme');
+    const opacity = this._getVal('s-opacity', 'range');
+    if (opacity) config.ui.opacity = parseInt(opacity);
+    const theme = this._getVal('s-theme');
+    if (theme) config.ui.theme = theme;
 
     // AI
     config.ai = config.ai || {};
-    config.ai.provider = this._getVal('s-ai-provider');
-    config.ai.api_url = this._getVal('s-ai-url');
-    config.ai.api_key = this._getVal('s-ai-key');
-    config.ai.model = this._getVal('s-ai-model');
-    config.ai.temperature = parseFloat(this._getVal('s-ai-temp') || 0.7);
+    const provider = this._getVal('s-ai-provider');
+    if (provider) config.ai.provider = provider;
+    const apiUrl = this._getVal('s-ai-url');
+    if (apiUrl) config.ai.api_url = apiUrl;
+    const apiKey = this._getVal('s-ai-key');
+    if (apiKey) config.ai.api_key = apiKey;
+    const model = this._getVal('s-ai-model');
+    if (model) config.ai.model = model;
+    const temp = this._getVal('s-ai-temp');
+    if (temp) config.ai.temperature = parseFloat(temp);
 
     // Game
     config.game = config.game || {};
-    config.game.capture_fps = parseFloat(this._getVal('s-capture-fps') || 1);
-    config.game.silent_fps = parseFloat(this._getVal('s-silent-fps') || 0.2);
-    config.game.silent_threshold = parseInt(this._getVal('s-silent-threshold') || 5);
+    const captureFps = this._getVal('s-capture-fps');
+    if (captureFps) config.game.capture_fps = parseFloat(captureFps);
+    const silentFps = this._getVal('s-silent-fps');
+    if (silentFps) config.game.silent_fps = parseFloat(silentFps);
+    const silentThreshold = this._getVal('s-silent-threshold');
+    if (silentThreshold) config.game.silent_threshold = parseInt(silentThreshold);
 
     // Search
     config.search = config.search || {};
-    config.search.engine = this._getVal('s-search-engine');
-    config.search.api_url = this._getVal('s-search-url');
+    const searchEngine = this._getVal('s-search-engine');
+    if (searchEngine) config.search.engine = searchEngine;
+    const searchUrl = this._getVal('s-search-url');
+    if (searchUrl) config.search.api_url = searchUrl;
 
     // Memory
     config.memory = config.memory || {};
     config.memory.vector = config.memory.vector || {};
-    config.memory.vector.api_url = this._getVal('s-mem-vector-url');
-    config.memory.vector.api_key = this._getVal('s-mem-vector-key');
-    config.memory.vector.model = this._getVal('s-mem-vector-model');
+    const vectorUrl = this._getVal('s-mem-vector-url');
+    if (vectorUrl) config.memory.vector.api_url = vectorUrl;
+    const vectorKey = this._getVal('s-mem-vector-key');
+    if (vectorKey) config.memory.vector.api_key = vectorKey;
+    const vectorModel = this._getVal('s-mem-vector-model');
+    if (vectorModel) config.memory.vector.model = vectorModel;
     config.memory.reranker = config.memory.reranker || {};
-    config.memory.reranker.api_url = this._getVal('s-mem-reranker-url');
-    config.memory.reranker.api_key = this._getVal('s-mem-reranker-key');
-    config.memory.top_k = parseInt(this._getVal('s-mem-topk') || 20);
-    config.memory.top_n = parseInt(this._getVal('s-mem-topn') || 8);
+    const rerankerUrl = this._getVal('s-mem-reranker-url');
+    if (rerankerUrl) config.memory.reranker.api_url = rerankerUrl;
+    const rerankerKey = this._getVal('s-mem-reranker-key');
+    if (rerankerKey) config.memory.reranker.api_key = rerankerKey;
+    const topK = this._getVal('s-mem-topk');
+    if (topK) config.memory.top_k = parseInt(topK);
+    const topN = this._getVal('s-mem-topn');
+    if (topN) config.memory.top_n = parseInt(topN);
 
     return config;
   }

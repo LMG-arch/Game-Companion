@@ -63,19 +63,37 @@ class AIEngine:
             },
         }
 
-        # 初始化当前 Provider
+        # 初始化当前 Provider（检查 API Key 是否配置）
         if provider_name in provider_configs:
             pc = provider_configs[provider_name]
-            self.providers[provider_name] = pc["class"](**pc["config"])
-            self.current_provider = provider_name
-            logger.info(f"AI Provider 已加载: {provider_name}")
+            if pc["config"].get("api_key"):
+                self.providers[provider_name] = pc["class"](**pc["config"])
+                self.current_provider = provider_name
+                logger.info(f"AI Provider 已加载: {provider_name}")
+            else:
+                logger.warning(f"AI Provider {provider_name} 未配置 API Key，跳过加载")
 
         # 初始化降级 Provider
         if fallback_name and fallback_name in provider_configs:
             pc = provider_configs[fallback_name]
-            self.providers[fallback_name] = pc["class"](**pc["config"])
-            self.fallback_provider = fallback_name
-            logger.info(f"降级 Provider 已加载: {fallback_name}")
+            if pc["config"].get("api_key"):
+                self.providers[fallback_name] = pc["class"](**pc["config"])
+                self.fallback_provider = fallback_name
+                logger.info(f"降级 Provider 已加载: {fallback_name}")
+
+        # 检查是否有可用的 Provider
+        if not self.providers:
+            logger.warning("没有可用的 AI Provider，请在设置中配置 API Key")
+
+    def is_available(self) -> bool:
+        """检查 AI 引擎是否可用"""
+        return len(self.providers) > 0
+
+    def get_status(self) -> dict:
+        """获取 AI 引擎状态"""
+        if not self.providers:
+            return {"status": "offline", "message": "未配置 API Key"}
+        return {"status": "online", "message": f"当前 Provider: {self.current_provider}"}
 
     async def analyze_image(
         self,
