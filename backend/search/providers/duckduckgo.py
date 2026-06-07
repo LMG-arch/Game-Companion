@@ -2,6 +2,7 @@
 """DuckDuckGo 搜索 Provider（免费，无需 API Key）"""
 
 from typing import Optional
+import urllib.parse
 import httpx
 from bs4 import BeautifulSoup
 
@@ -51,7 +52,6 @@ class DuckDuckGoProvider:
 
                     # 清理 URL
                     if "uddg=" in url:
-                        import urllib.parse
                         parsed = urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
                         url = parsed.get("uddg", [url])[0]
 

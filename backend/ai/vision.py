@@ -6,9 +6,6 @@ from backend.utils.logger import logger
 
 
 # 场景类型
-
-
-# 场景类型
 SCENE_TYPES = {
     "combat": "战斗",
     "exploration": "探索",
@@ -75,6 +72,5 @@ def get_danmaku_hint(scene: str, description: str) -> str:
         ],
     }
 
-    import random
     scene_hints = hints.get(scene, ["加油！"])
     return random.choice(scene_hints)

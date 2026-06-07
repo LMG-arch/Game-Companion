@@ -41,8 +41,6 @@ class TopBar {
     document.body.appendChild(this.element);
 
     // 注册到点击穿透模块
-    if (window.clickThrough) {
-    }
   }
 
   setStatus(text, color = '#4caf50') {

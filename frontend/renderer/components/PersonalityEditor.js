@@ -75,8 +75,6 @@ class PersonalityEditor {
     document.body.appendChild(this.element);
 
     // 注册到点击穿透模块
-    if (window.clickThrough) {
-    }
 
     // 事件绑定
     this.element.querySelector('#close-personality-editor').addEventListener('click', () => {

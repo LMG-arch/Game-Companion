@@ -70,8 +70,6 @@ class SettingsPanel {
     document.body.appendChild(this.element);
 
     // 注册到点击穿透模块
-    if (window.clickThrough) {
-    }
 
     // 添加样式
     const style = document.createElement('style');

@@ -131,7 +131,6 @@ class ScreenCapturer:
 
     def _compute_hash(self, frame) -> str:
         """计算帧哈希（降采样加速）"""
-        import numpy as np
         # 降采样到 1/4 分辨率
         small = frame[::4, ::4]
         return hashlib.md5(small.tobytes()).hexdigest()

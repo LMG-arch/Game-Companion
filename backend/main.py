@@ -3,6 +3,8 @@
 
 import asyncio
 import signal
+import sys
+import time
 
 from backend.core.websocket_server import WebSocketServer
 from backend.core.config import config
@@ -208,7 +210,6 @@ async def main():
                 )
 
                 # 记录到记忆系统（限制频率，每 30 秒最多一次）
-                import time
                 now = time.time()
                 if now - last_memory_write >= 30:
                     last_memory_write = now
@@ -254,12 +255,11 @@ async def main():
 
     # 监听 stdin 的 shutdown 命令（Windows 兼容）
     async def watch_stdin():
-        import sys
         while not stop_event.is_set():
             try:
                 line = await asyncio.get_event_loop().run_in_executor(None, sys.stdin.readline)
-                if line and 'shutdown' in line.strip().lower():
-                    logger.info("收到 stdin shutdown 命令")
+                if not line or 'shutdown' in line.strip().lower():
+                    logger.info("收到 stdin shutdown 命令或 stdin 关闭")
                     stop_event.set()
                     break
             except Exception:

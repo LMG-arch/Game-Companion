@@ -65,8 +65,6 @@ class Bubble {
     document.body.appendChild(this.element);
 
     // 注册到点击穿透模块
-    if (window.clickThrough) {
-    }
 
     // 鼠标悬停显示详情
     this.element.addEventListener('mouseenter', () => {
