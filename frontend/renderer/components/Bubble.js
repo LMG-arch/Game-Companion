@@ -64,17 +64,21 @@ class Bubble {
 
     document.body.appendChild(this.element);
 
-    // 注册到点击穿透模块
-
-    // 鼠标悬停显示详情
+    // 鼠标悬停显示详情并禁用穿透
     this.element.addEventListener('mouseenter', () => {
       this.element.style.transform = 'scale(1.1)';
       this.element.querySelector('#bubble-tooltip').style.display = 'block';
+      if (window.clickThrough) {
+        window.clickThrough.disable();
+      }
     });
 
     this.element.addEventListener('mouseleave', () => {
       this.element.style.transform = 'scale(1)';
       this.element.querySelector('#bubble-tooltip').style.display = 'none';
+      if (window.clickThrough) {
+        window.clickThrough.enable();
+      }
     });
 
     // 点击打开设置

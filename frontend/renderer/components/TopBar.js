@@ -40,7 +40,31 @@ class TopBar {
 
     document.body.appendChild(this.element);
 
-    // 注册到点击穿透模块
+    // 鼠标悬停时禁用穿透
+    this.element.addEventListener('mouseenter', () => {
+      if (window.clickThrough) {
+        window.clickThrough.disable();
+      }
+    });
+
+    this.element.addEventListener('mouseleave', () => {
+      // 延迟恢复穿透，避免点击按钮时立即穿透
+      setTimeout(() => {
+        if (window.clickThrough && !this._isOverButton) {
+          window.clickThrough.enable();
+        }
+      }, 100);
+    });
+
+    // 按钮悬停标记
+    this.element.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('mouseenter', () => {
+        this._isOverButton = true;
+      });
+      btn.addEventListener('mouseleave', () => {
+        this._isOverButton = false;
+      });
+    });
   }
 
   setStatus(text, color = '#4caf50') {
