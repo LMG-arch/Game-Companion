@@ -14,7 +14,6 @@ class TopBar {
   init() {
     this.element = document.createElement('div');
     this.element.id = 'top-bar';
-    this.element.className = 'module interactive';
     this.element.style.cssText = `
       position: fixed;
       top: 0;
@@ -27,11 +26,11 @@ class TopBar {
       padding: 0 12px;
       z-index: 30;
       backdrop-filter: blur(10px);
-      pointer-events: auto;
+      pointer-events: none;
     `;
 
     this.element.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
+      <div id="topbar-inner" style="display: flex; align-items: center; gap: 12px; width: 100%; pointer-events: auto;">
         <span id="topbar-status" style="font-size: 12px; color: #4caf50;">● 就绪</span>
         <span id="topbar-fps" style="font-size: 12px; color: rgba(255,255,255,0.6);">FPS: --</span>
         <div style="flex: 1;"></div>
@@ -41,6 +40,21 @@ class TopBar {
     `;
 
     document.body.appendChild(this.element);
+
+    // 鼠标进入工具栏区域时恢复交互
+    const inner = this.element.querySelector('#topbar-inner');
+    if (inner) {
+      inner.addEventListener('mouseenter', () => {
+        if (window.ipcRenderer) {
+          window.ipcRenderer.send('set-ignore-mouse-events', false);
+        }
+      });
+      inner.addEventListener('mouseleave', () => {
+        if (window.ipcRenderer) {
+          window.ipcRenderer.send('set-ignore-mouse-events', true, { forward: true });
+        }
+      });
+    }
   }
 
   setStatus(text, color = '#4caf50') {

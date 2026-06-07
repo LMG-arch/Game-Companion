@@ -24,18 +24,21 @@ function initComponents() {
     sidePanel.setContent(`<p>正在搜索: ${text}...</p>`);
   };
 
-  // 设置面板按钮（占位）
+  // 设置面板按钮
   const settingsBtn = document.getElementById('btn-settings');
   if (settingsBtn) {
-    settingsBtn.addEventListener('click', () => {
-      alert('设置面板开发中...');
+    settingsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sidePanel.setContent('<p>⚙️ 设置面板开发中...</p>');
+      sidePanel.show();
     });
   }
 
   // 搜索按钮
   const searchBtn = document.getElementById('btn-search');
   if (searchBtn) {
-    searchBtn.addEventListener('click', () => {
+    searchBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
       chatInput.toggle();
     });
   }
@@ -111,7 +114,8 @@ ipcRenderer.on('shortcut', (event, action) => {
       bubble.toggle();
       break;
     case 'open-settings':
-      alert('设置面板开发中...');
+      sidePanel.setContent('<p>⚙️ 设置面板开发中...</p>');
+      sidePanel.show();
       break;
     case 'toggle-danmaku':
       danmakuLayer.toggle();

@@ -4,7 +4,7 @@
  * 创建透明覆盖窗口，管理 Python 子进程
  */
 
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, screen } = require('electron');
 const path = require('path');
 const PythonManager = require('./python-manager');
 const Shortcuts = require('./shortcuts');
@@ -20,17 +20,24 @@ let mainWindow = null;
 
 /**
  * 创建透明覆盖窗口
+ * 使用固定尺寸覆盖整个屏幕，避免 fullscreen 模式导致的窗口闪烁
  */
 function createWindow() {
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+
   mainWindow = new BrowserWindow({
-    width: 1920,
-    height: 1080,
+    x: 0,
+    y: 0,
+    width: width,
+    height: height,
     transparent: true,
     frame: false,
     alwaysOnTop: true,
-    fullscreen: true,
     skipTaskbar: true,
     resizable: false,
+    movable: false,
+    focusable: false,
+    hasShadow: false,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
@@ -39,8 +46,11 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
 
-  // 默认开启点击穿透（鼠标事件穿透到游戏）
+  // 默认开启点击穿透
   mainWindow.setIgnoreMouseEvents(true, { forward: true });
+
+  // 确保窗口始终在最上层
+  mainWindow.setAlwaysOnTop(true, 'screen-saver');
 
   // 开发模式下打开 DevTools
   if (process.argv.includes('--dev')) {
@@ -56,6 +66,10 @@ function createWindow() {
 ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
   if (mainWindow) {
     mainWindow.setIgnoreMouseEvents(ignore, options || {});
+    // 恢复穿透时确保窗口仍在最上层
+    if (ignore) {
+      mainWindow.setAlwaysOnTop(true, 'screen-saver');
+    }
   }
 });
 
