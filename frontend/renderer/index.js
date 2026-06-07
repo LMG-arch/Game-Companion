@@ -156,8 +156,7 @@ ipcRenderer.on('shortcut', (event, action) => {
       bubble.toggle();
       break;
     case 'open-settings':
-      sidePanel.setContent('<p>⚙️ 设置面板开发中...</p>');
-      sidePanel.show();
+      settingsPanel.toggle();
       break;
     case 'toggle-danmaku':
       danmakuLayer.toggle();
