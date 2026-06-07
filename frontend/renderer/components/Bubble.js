@@ -8,6 +8,7 @@ class Bubble {
   constructor() {
     this.element = null;
     this.visible = true;
+    this._leaveTimer = null;
     this.aiStatus = 'offline';
     this.init();
   }

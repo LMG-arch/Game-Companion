@@ -8,6 +8,8 @@ class TopBar {
   constructor() {
     this.element = null;
     this.visible = true;
+    this._leaveTimer = null;
+    this._isOverButton = false;
     this.init();
   }
 

@@ -8,9 +8,9 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 // 暴露安全的 API 到渲染进程
 contextBridge.exposeInMainWorld('electronAPI', {
-  // 发送消息到主进程
-  send: (channel, data) => {
-    ipcRenderer.send(channel, data);
+  // 发送消息到主进程（支持多参数）
+  send: (channel, ...args) => {
+    ipcRenderer.send(channel, ...args);
   },
 
   // 监听主进程消息
