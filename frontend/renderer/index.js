@@ -7,7 +7,7 @@
 const { ipcRenderer } = require('electron');
 
 // 全局组件实例
-let topBar, sidePanel, bubble, danmakuLayer, chatInput;
+let topBar, sidePanel, bubble, danmakuLayer, chatInput, personalityEditor;
 
 // 初始化组件
 function initComponents() {
@@ -16,6 +16,7 @@ function initComponents() {
   bubble = new Bubble();
   danmakuLayer = new DanmakuLayer();
   chatInput = new ChatInput();
+  personalityEditor = new PersonalityEditor();
 
   // 输入框提交回调
   chatInput.onSubmit = (text) => {
@@ -24,13 +25,12 @@ function initComponents() {
     sidePanel.setContent(`<p>正在搜索: ${text}...</p>`);
   };
 
-  // 设置面板按钮
+  // 设置面板按钮（打开人格编辑器）
   const settingsBtn = document.getElementById('btn-settings');
   if (settingsBtn) {
     settingsBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      sidePanel.setContent('<p>⚙️ 设置面板开发中...</p>');
-      sidePanel.show();
+      personalityEditor.toggle();
     });
   }
 
@@ -100,6 +100,32 @@ wsClient.on('question.answer.result', (payload) => {
 wsClient.on('error', (payload) => {
   console.error('错误:', payload);
   sidePanel.setContent(`<p style="color: #f44336;">错误: ${payload.message}</p>`);
+});
+
+// 收到人格列表
+wsClient.on('personality.list.result', (payload) => {
+  const { list, active_id } = payload;
+  personalityEditor.setPersonalities(list, active_id);
+});
+
+// 收到人格切换结果
+wsClient.on('personality.switch.result', (payload) => {
+  const { success, active_id } = payload;
+  if (success) {
+    sidePanel.setContent(`<p style="color: #4caf50;">✅ 人格已切换</p>`);
+    personalityEditor.loadPersonalities();
+  }
+});
+
+// 收到人格生成结果
+wsClient.on('personality.generate.result', (payload) => {
+  const { success, personality, error } = payload;
+  if (success) {
+    sidePanel.setContent(`<p style="color: #4caf50;">✅ 人格已生成: ${personality.name}</p>`);
+    personalityEditor.loadPersonalities();
+  } else {
+    sidePanel.setContent(`<p style="color: #f44336;">❌ 生成失败: ${error}</p>`);
+  }
 });
 
 // 监听主进程快捷键消息

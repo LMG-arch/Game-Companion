@@ -1,5 +1,5 @@
 # backend/main.py
-"""Python 后端入口：启动 WebSocket 服务器 + 屏幕捕获 + AI 分析 + 记忆系统"""
+"""Python 后端入口：启动 WebSocket 服务器 + 屏幕捕获 + AI 分析 + 记忆系统 + 人格系统"""
 
 import asyncio
 import signal
@@ -10,6 +10,8 @@ from backend.screen.capturer import ScreenCapturer
 from backend.ai.engine import AIEngine
 from backend.ai.vision import get_scene_prompt, get_danmaku_hint
 from backend.memory.manager import MemoryManager
+from backend.personality.manager import PersonalityManager
+from backend.personality.generator import PersonalityGenerator
 from backend.utils.port_file import write_port, cleanup_port
 from backend.utils.logger import logger
 
@@ -22,12 +24,17 @@ async def main():
     ai_config = config.get("ai", {})
     game_config = config.get("game", {})
     memory_config = config.get("memory", {})
+    personality_config = config.get("personality", {})
 
     # 创建 AI 引擎
     ai_engine = AIEngine(ai_config)
 
     # 创建记忆管理器
     memory_manager = MemoryManager(memory_config, ai_engine)
+
+    # 创建人格管理器
+    personality_manager = PersonalityManager(personality_config)
+    personality_generator = PersonalityGenerator(ai_engine)
 
     # 启动时执行记忆维护
     await memory_manager.maintain()
@@ -41,6 +48,37 @@ async def main():
         return {"answer": "功能开发中...", "sources": []}
 
     server.on("question.ask", handle_question)
+
+    # 人格列表处理器
+    def handle_personality_list(payload: dict) -> dict:
+        """获取人格列表"""
+        return {
+            "list": personality_manager.list_all(),
+            "active_id": personality_manager.active_id,
+        }
+
+    server.on("personality.list", handle_personality_list)
+
+    # 人格切换处理器
+    def handle_personality_switch(payload: dict) -> dict:
+        """切换人格"""
+        pid = payload.get("id", "")
+        success = personality_manager.switch(pid)
+        return {"success": success, "active_id": personality_manager.active_id}
+
+    server.on("personality.switch", handle_personality_switch)
+
+    # 人格生成处理器
+    async def handle_personality_generate(payload: dict) -> dict:
+        """生成人格"""
+        keywords = payload.get("keywords", "")
+        result = await personality_generator.generate(keywords)
+        if result:
+            personality_manager.save_custom(result)
+            return {"success": True, "personality": result}
+        return {"success": False, "error": "生成失败"}
+
+    server.on("personality.generate", handle_personality_generate)
 
     # 记忆测试处理器
     async def handle_memory_test(payload: dict) -> dict:
