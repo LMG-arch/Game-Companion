@@ -1,5 +1,5 @@
 # backend/main.py
-"""Python 后端入口：启动 WebSocket 服务器 + 屏幕捕获 + AI 分析"""
+"""Python 后端入口：启动 WebSocket 服务器 + 屏幕捕获 + AI 分析 + 记忆系统"""
 
 import asyncio
 import signal
@@ -9,6 +9,7 @@ from backend.core.config import config
 from backend.screen.capturer import ScreenCapturer
 from backend.ai.engine import AIEngine
 from backend.ai.vision import get_scene_prompt, get_danmaku_hint
+from backend.memory.manager import MemoryManager
 from backend.utils.port_file import write_port, cleanup_port
 from backend.utils.logger import logger
 
@@ -20,9 +21,16 @@ async def main():
     # 加载配置
     ai_config = config.get("ai", {})
     game_config = config.get("game", {})
+    memory_config = config.get("memory", {})
 
     # 创建 AI 引擎
     ai_engine = AIEngine(ai_config)
+
+    # 创建记忆管理器
+    memory_manager = MemoryManager(memory_config, ai_engine)
+
+    # 启动时执行记忆维护
+    await memory_manager.maintain()
 
     # 创建 WebSocket 服务器
     server = WebSocketServer()
@@ -33,6 +41,20 @@ async def main():
         return {"answer": "功能开发中...", "sources": []}
 
     server.on("question.ask", handle_question)
+
+    # 记忆测试处理器
+    async def handle_memory_test(payload: dict) -> dict:
+        """处理记忆检索测试"""
+        query = payload.get("query", "")
+        results = await memory_manager.recall(query)
+        stats = memory_manager.get_stats()
+        return {
+            "query": query,
+            "results": results,
+            "stats": stats,
+        }
+
+    server.on("memory.test", handle_memory_test)
 
     # 帧回调：发送到 AI 分析
     async def on_frame(jpeg_bytes: bytes):
@@ -65,6 +87,13 @@ async def main():
                     "priority": "normal",
                     "style": "encouragement",
                 })
+
+                # 记录到记忆系统
+                await memory_manager.write(
+                    text=f"场景: {scene}, {description}",
+                    context=suggestion,
+                    game="",
+                )
 
         except Exception as e:
             logger.error(f"AI 分析失败: {e}")
@@ -108,6 +137,7 @@ async def main():
     # 清理
     await capturer.stop()
     capture_task.cancel()
+    memory_manager.store.close()
     await server.stop()
     cleanup_port()
     logger.info("后端已关闭")
