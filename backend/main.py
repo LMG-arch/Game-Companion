@@ -1,5 +1,5 @@
 # backend/main.py
-"""Python 后端入口：启动 WebSocket 服务器 + 屏幕捕获 + AI 分析 + 记忆系统 + 人格系统 + 弹幕引擎"""
+"""Python 后端入口：启动 WebSocket 服务器 + 屏幕捕获 + AI 分析 + 记忆系统 + 人格系统 + 弹幕引擎 + 搜索系统"""
 
 import asyncio
 import signal
@@ -13,6 +13,7 @@ from backend.memory.manager import MemoryManager
 from backend.personality.manager import PersonalityManager
 from backend.personality.generator import PersonalityGenerator
 from backend.danmaku.history import DanmakuHistory
+from backend.search.engine import SearchEngine
 from backend.utils.port_file import write_port, cleanup_port
 from backend.utils.logger import logger
 
@@ -26,6 +27,7 @@ async def main():
     game_config = config.get("game", {})
     memory_config = config.get("memory", {})
     personality_config = config.get("personality", {})
+    search_config = config.get("search", {})
 
     # 创建 AI 引擎
     ai_engine = AIEngine(ai_config)
@@ -40,6 +42,9 @@ async def main():
     # 创建弹幕历史
     danmaku_history = DanmakuHistory()
 
+    # 创建搜索引擎
+    search_engine = SearchEngine(search_config)
+
     # 启动时执行记忆维护
     await memory_manager.maintain()
 
@@ -47,9 +52,30 @@ async def main():
     server = WebSocketServer()
 
     # 注册消息处理器
-    def handle_question(payload: dict) -> dict:
-        """处理用户提问"""
-        return {"answer": "功能开发中...", "sources": []}
+    async def handle_question(payload: dict) -> dict:
+        """处理用户提问（搜索 + AI 回答）"""
+        text = payload.get("text", "")
+
+        # 搜索相关攻略
+        search_results = await search_engine.search(text, limit=3)
+
+        # 构建上下文
+        context = ""
+        if search_results:
+            context = "搜索结果:\n"
+            for r in search_results:
+                context += f"- {r['title']}: {r['snippet']}\n"
+
+        # AI 回答
+        answer = await ai_engine.chat(
+            messages=[{"role": "user", "content": f"问题: {text}\n\n{context}\n\n请根据以上信息回答问题。"}],
+            system_prompt=personality_manager.get_system_prompt(),
+        )
+
+        return {
+            "answer": answer or "抱歉，我暂时无法回答这个问题。",
+            "sources": search_results,
+        }
 
     server.on("question.ask", handle_question)
 
