@@ -15,7 +15,7 @@ class ChatInput {
   init() {
     this.element = document.createElement('div');
     this.element.id = 'chat-input';
-    this.element.className = 'module interactive hidden';
+    this.element.className = 'hidden';
     this.element.style.cssText = `
       position: fixed;
       bottom: 20px;
@@ -23,7 +23,6 @@ class ChatInput {
       transform: translateX(-50%);
       width: 500px;
       z-index: 60;
-      pointer-events: auto;
     `;
 
     this.element.innerHTML = `
@@ -62,6 +61,11 @@ class ChatInput {
 
     document.body.appendChild(this.element);
 
+    // 注册到点击穿透模块
+    if (window.clickThrough) {
+      window.clickThrough.register(this.element);
+    }
+
     // 事件绑定
     const input = this.element.querySelector('#chat-text');
     const submitBtn = this.element.querySelector('#chat-submit');
@@ -74,11 +78,6 @@ class ChatInput {
       } else if (e.key === 'Escape') {
         this.hide();
       }
-    });
-
-    // 阻止事件冒泡
-    this.element.addEventListener('click', (e) => {
-      e.stopPropagation();
     });
   }
 
@@ -99,19 +98,11 @@ class ChatInput {
     if (input) {
       input.focus();
     }
-    // 通知主进程禁用点击穿透
-    if (window.ipcRenderer) {
-      window.ipcRenderer.send('set-ignore-mouse-events', false);
-    }
   }
 
   hide() {
     this.element.classList.add('hidden');
     this.visible = false;
-    // 恢复点击穿透
-    if (window.ipcRenderer) {
-      window.ipcRenderer.send('set-ignore-mouse-events', true, { forward: true });
-    }
   }
 
   toggle() {
@@ -123,5 +114,4 @@ class ChatInput {
   }
 }
 
-// 导出
 window.ChatInput = ChatInput;

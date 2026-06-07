@@ -74,6 +74,11 @@ class PersonalityEditor {
 
     document.body.appendChild(this.element);
 
+    // 注册到点击穿透模块
+    if (window.clickThrough) {
+      window.clickThrough.register(this.element);
+    }
+
     // 事件绑定
     this.element.querySelector('#close-personality-editor').addEventListener('click', () => {
       this.hide();
@@ -156,17 +161,11 @@ class PersonalityEditor {
     this.element.classList.remove('hidden');
     this.visible = true;
     this.loadPersonalities();
-    if (window.ipcRenderer) {
-      window.ipcRenderer.send('set-ignore-mouse-events', false);
-    }
   }
 
   hide() {
     this.element.classList.add('hidden');
     this.visible = false;
-    if (window.ipcRenderer) {
-      window.ipcRenderer.send('set-ignore-mouse-events', true, { forward: true });
-    }
   }
 
   toggle() {

@@ -4,8 +4,6 @@
  * 初始化所有 UI 组件，处理 WebSocket 消息
  */
 
-const { ipcRenderer } = require('electron');
-
 // HTML 转义函数，防止 XSS
 function escapeHtml(text) {
   const div = document.createElement('div');
@@ -29,11 +27,14 @@ function initComponents() {
   // 初始化弹幕引擎
   danmakuEngine.init(danmakuLayer);
 
+  // 初始化点击穿透
+  clickThrough.init();
+
   // 输入框提交回调
   chatInput.onSubmit = (text) => {
     const id = wsClient.send('question.ask', { text });
     console.log(`已发送提问: ${text}`);
-    sidePanel.setContent(`<p>正在搜索: ${text}...</p>`);
+    sidePanel.setContent(`<p>正在搜索: ${escapeHtml(text)}...</p>`);
   };
 
   // 设置面板按钮（打开设置面板）
@@ -54,17 +55,36 @@ function initComponents() {
     });
   }
 
-  // 初始化点击穿透
-  clickThrough.init(ipcRenderer);
-
   console.log('UI 组件已初始化');
 }
 
 // 监听 Python 就绪事件
-ipcRenderer.on('python-ready', (event, { port }) => {
-  console.log(`Python 端口: ${port}`);
-  wsClient.connect(port);
-});
+if (window.electronAPI) {
+  window.electronAPI.on('python-ready', ({ port }) => {
+    console.log(`Python 端口: ${port}`);
+    wsClient.connect(port);
+  });
+
+  // 监听主进程快捷键消息
+  window.electronAPI.on('shortcut', (action) => {
+    switch (action) {
+      case 'toggle-input':
+        chatInput.toggle();
+        break;
+      case 'toggle-ui':
+        topBar.toggle();
+        sidePanel.toggle();
+        bubble.toggle();
+        break;
+      case 'open-settings':
+        settingsPanel.toggle();
+        break;
+      case 'toggle-danmaku':
+        danmakuLayer.toggle();
+        break;
+    }
+  });
+}
 
 // WebSocket 事件监听
 wsClient.on('connected', () => {
@@ -120,7 +140,7 @@ wsClient.on('question.answer.result', (payload) => {
 // 收到错误
 wsClient.on('error', (payload) => {
   console.error('错误:', payload);
-  sidePanel.setContent(`<p style="color: #f44336;">错误: ${payload.message}</p>`);
+  sidePanel.setContent(`<p style="color: #f44336;">错误: ${escapeHtml(payload.message)}</p>`);
 });
 
 // 收到人格列表
@@ -133,7 +153,7 @@ wsClient.on('personality.list.result', (payload) => {
 wsClient.on('personality.switch.result', (payload) => {
   const { success, active_id } = payload;
   if (success) {
-    sidePanel.setContent(`<p style="color: #4caf50;">✅ 人格已切换</p>`);
+    sidePanel.setContent('<p style="color: #4caf50;">✅ 人格已切换</p>');
     personalityEditor.loadPersonalities();
   }
 });
@@ -142,10 +162,10 @@ wsClient.on('personality.switch.result', (payload) => {
 wsClient.on('personality.generate.result', (payload) => {
   const { success, personality, error } = payload;
   if (success) {
-    sidePanel.setContent(`<p style="color: #4caf50;">✅ 人格已生成: ${personality.name}</p>`);
+    sidePanel.setContent(`<p style="color: #4caf50;">✅ 人格已生成: ${escapeHtml(personality.name)}</p>`);
     personalityEditor.loadPersonalities();
   } else {
-    sidePanel.setContent(`<p style="color: #f44336;">❌ 生成失败: ${error}</p>`);
+    sidePanel.setContent(`<p style="color: #f44336;">❌ 生成失败: ${escapeHtml(error)}</p>`);
   }
 });
 
@@ -158,26 +178,6 @@ wsClient.on('settings.get.result', (payload) => {
 wsClient.on('settings.save.result', (payload) => {
   if (payload.success) {
     sidePanel.setContent('<p style="color: #4caf50;">✅ 配置已保存</p>');
-  }
-});
-
-// 监听主进程快捷键消息
-ipcRenderer.on('shortcut', (event, action) => {
-  switch (action) {
-    case 'toggle-input':
-      chatInput.toggle();
-      break;
-    case 'toggle-ui':
-      topBar.toggle();
-      sidePanel.toggle();
-      bubble.toggle();
-      break;
-    case 'open-settings':
-      settingsPanel.toggle();
-      break;
-    case 'toggle-danmaku':
-      danmakuLayer.toggle();
-      break;
   }
 });
 

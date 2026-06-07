@@ -14,7 +14,6 @@ class SidePanel {
   init() {
     this.element = document.createElement('div');
     this.element.id = 'side-panel';
-    this.element.className = 'module';
     this.element.style.cssText = `
       position: fixed;
       top: 50px;
@@ -27,7 +26,6 @@ class SidePanel {
       z-index: 50;
       overflow-y: auto;
       backdrop-filter: blur(10px);
-      pointer-events: none;
       transition: transform 0.3s ease;
     `;
 
@@ -48,20 +46,10 @@ class SidePanel {
 
     document.body.appendChild(this.element);
 
-    // 鼠标悬停时可交互
-    this.element.addEventListener('mouseenter', () => {
-      this.element.style.pointerEvents = 'auto';
-      if (window.ipcRenderer) {
-        window.ipcRenderer.send('set-ignore-mouse-events', false);
-      }
-    });
-
-    this.element.addEventListener('mouseleave', () => {
-      this.element.style.pointerEvents = 'none';
-      if (window.ipcRenderer) {
-        window.ipcRenderer.send('set-ignore-mouse-events', true, { forward: true });
-      }
-    });
+    // 注册到点击穿透模块
+    if (window.clickThrough) {
+      window.clickThrough.register(this.element);
+    }
   }
 
   setContent(html) {
@@ -98,5 +86,4 @@ class SidePanel {
   }
 }
 
-// 导出
 window.SidePanel = SidePanel;

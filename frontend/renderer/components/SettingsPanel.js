@@ -69,6 +69,11 @@ class SettingsPanel {
 
     document.body.appendChild(this.element);
 
+    // 注册到点击穿透模块
+    if (window.clickThrough) {
+      window.clickThrough.register(this.element);
+    }
+
     // 添加样式
     const style = document.createElement('style');
     style.textContent = `
@@ -494,20 +499,11 @@ class SettingsPanel {
     this.element.classList.remove('hidden');
     this.visible = true;
     this.loadConfig();
-    // 延迟发送 IPC 确保 DOM 更新完成
-    setTimeout(() => {
-      if (window.ipcRenderer) {
-        window.ipcRenderer.send('set-ignore-mouse-events', false);
-      }
-    }, 50);
   }
 
   hide() {
     this.element.classList.add('hidden');
     this.visible = false;
-    if (window.ipcRenderer) {
-      window.ipcRenderer.send('set-ignore-mouse-events', true, { forward: true });
-    }
   }
 
   toggle() {

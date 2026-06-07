@@ -8,7 +8,7 @@ class Bubble {
   constructor() {
     this.element = null;
     this.visible = true;
-    this.aiStatus = 'offline'; // offline/online/error
+    this.aiStatus = 'offline';
     this.init();
   }
 
@@ -22,9 +22,8 @@ class Bubble {
       width: 80px;
       height: 80px;
       z-index: 40;
-      pointer-events: auto;
-      transition: transform 0.2s ease;
       cursor: pointer;
+      transition: transform 0.2s ease;
     `;
 
     this.element.innerHTML = `
@@ -56,6 +55,7 @@ class Bubble {
         min-width: 150px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         border: 1px solid rgba(255, 255, 255, 0.2);
+        pointer-events: none;
       ">
         <p id="tooltip-status" style="font-size: 12px; color: #f44336; margin: 0 0 6px 0;">AI 状态：离线</p>
         <p id="tooltip-info" style="font-size: 11px; color: rgba(255,255,255,0.6); margin: 0;">等待连接...</p>
@@ -64,37 +64,28 @@ class Bubble {
 
     document.body.appendChild(this.element);
 
+    // 注册到点击穿透模块
+    if (window.clickThrough) {
+      window.clickThrough.register(this.element);
+    }
+
     // 鼠标悬停显示详情
     this.element.addEventListener('mouseenter', () => {
       this.element.style.transform = 'scale(1.1)';
       this.element.querySelector('#bubble-tooltip').style.display = 'block';
-      // 通知主进程禁用点击穿透
-      if (window.ipcRenderer) {
-        window.ipcRenderer.send('set-ignore-mouse-events', false);
-      }
     });
 
     this.element.addEventListener('mouseleave', () => {
       this.element.style.transform = 'scale(1)';
       this.element.querySelector('#bubble-tooltip').style.display = 'none';
-      // 恢复点击穿透
-      if (window.ipcRenderer) {
-        window.ipcRenderer.send('set-ignore-mouse-events', true, { forward: true });
-      }
     });
 
     // 点击打开设置
     this.element.addEventListener('click', () => {
-      // 触发自定义事件，由 index.js 处理
       window.dispatchEvent(new CustomEvent('open-settings'));
     });
   }
 
-  /**
-   * 设置 AI 状态
-   * @param {string} status - offline/online/error
-   * @param {string} info - 额外信息
-   */
   setAIStatus(status, info = '') {
     this.aiStatus = status;
     const inner = this.element.querySelector('#bubble-inner');

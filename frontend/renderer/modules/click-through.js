@@ -1,54 +1,71 @@
 // frontend/renderer/modules/click-through.js
 /**
  * 点击穿透模块
- * 管理 4 种模式：全穿透/输入/设置/气泡交互
+ * 使用 mousemove 检测鼠标是否在交互区域上
  */
 
 class ClickThrough {
   constructor() {
-    this.mode = 'full'; // full/input/settings/bubble
-    this.ipcRenderer = null;
+    this.interactiveElements = [];
+    this.isOverInteractive = false;
   }
 
-  init(ipcRenderer) {
-    this.ipcRenderer = ipcRenderer;
-    this.setMode('full');
+  init() {
+    // 监听鼠标移动（forward: true 时会触发）
+    document.addEventListener('mousemove', (e) => {
+      this._checkMousePosition(e.clientX, e.clientY);
+    });
+
+    // 鼠标离开窗口时恢复穿透
+    document.addEventListener('mouseleave', () => {
+      if (this.isOverInteractive) {
+        this.isOverInteractive = false;
+        this._setIgnoreMouse(true);
+      }
+    });
   }
 
   /**
-   * 设置穿透模式
-   * @param {string} mode - full/input/settings/bubble
+   * 注册可交互元素
+   * @param {HTMLElement} element
    */
-  setMode(mode) {
-    this.mode = mode;
-
-    if (!this.ipcRenderer) return;
-
-    switch (mode) {
-      case 'full':
-        // 全穿透：所有鼠标事件穿透
-        this.ipcRenderer.send('set-ignore-mouse-events', true, { forward: true });
-        break;
-
-      case 'input':
-        // 输入模式：输入框可交互，其余穿透
-        this.ipcRenderer.send('set-ignore-mouse-events', false);
-        break;
-
-      case 'settings':
-        // 设置模式：整个面板可交互
-        this.ipcRenderer.send('set-ignore-mouse-events', false);
-        break;
-
-      case 'bubble':
-        // 气泡交互：气泡区域可交互，其余穿透
-        this.ipcRenderer.send('set-ignore-mouse-events', true, { forward: true });
-        break;
+  register(element) {
+    if (element && !this.interactiveElements.includes(element)) {
+      this.interactiveElements.push(element);
     }
   }
 
-  getMode() {
-    return this.mode;
+  /**
+   * 检查鼠标是否在交互区域上
+   */
+  _checkMousePosition(x, y) {
+    let overInteractive = false;
+
+    for (const el of this.interactiveElements) {
+      if (el.classList.contains('hidden') || el.style.display === 'none') {
+        continue;
+      }
+
+      const rect = el.getBoundingClientRect();
+      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+        overInteractive = true;
+        break;
+      }
+    }
+
+    if (overInteractive !== this.isOverInteractive) {
+      this.isOverInteractive = overInteractive;
+      this._setIgnoreMouse(!overInteractive);
+    }
+  }
+
+  /**
+   * 设置点击穿透
+   */
+  _setIgnoreMouse(ignore) {
+    if (window.electronAPI) {
+      window.electronAPI.send('set-ignore-mouse-events', ignore, ignore ? { forward: true } : {});
+    }
   }
 }
 

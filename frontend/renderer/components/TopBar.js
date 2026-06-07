@@ -26,11 +26,10 @@ class TopBar {
       padding: 0 12px;
       z-index: 30;
       backdrop-filter: blur(10px);
-      pointer-events: none;
     `;
 
     this.element.innerHTML = `
-      <div id="topbar-inner" style="display: flex; align-items: center; gap: 12px; width: 100%; pointer-events: auto;">
+      <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
         <span id="topbar-status" style="font-size: 12px; color: #4caf50;">● 就绪</span>
         <span id="topbar-fps" style="font-size: 12px; color: rgba(255,255,255,0.6);">FPS: --</span>
         <div style="flex: 1;"></div>
@@ -41,19 +40,9 @@ class TopBar {
 
     document.body.appendChild(this.element);
 
-    // 鼠标进入工具栏区域时恢复交互
-    const inner = this.element.querySelector('#topbar-inner');
-    if (inner) {
-      inner.addEventListener('mouseenter', () => {
-        if (window.ipcRenderer) {
-          window.ipcRenderer.send('set-ignore-mouse-events', false);
-        }
-      });
-      inner.addEventListener('mouseleave', () => {
-        if (window.ipcRenderer) {
-          window.ipcRenderer.send('set-ignore-mouse-events', true, { forward: true });
-        }
-      });
+    // 注册到点击穿透模块
+    if (window.clickThrough) {
+      window.clickThrough.register(this.element);
     }
   }
 
@@ -84,5 +73,4 @@ class TopBar {
   }
 }
 
-// 导出
 window.TopBar = TopBar;
