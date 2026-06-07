@@ -36,7 +36,6 @@ function createWindow() {
     skipTaskbar: true,
     resizable: false,
     movable: false,
-    focusable: false,
     hasShadow: false,
     webPreferences: {
       nodeIntegration: true,
@@ -46,7 +45,7 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
 
-  // 默认开启点击穿透
+  // 默认开启点击穿透（forward: true 允许接收鼠标移动事件）
   mainWindow.setIgnoreMouseEvents(true, { forward: true });
 
   // 确保窗口始终在最上层
