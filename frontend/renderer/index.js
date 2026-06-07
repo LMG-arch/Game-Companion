@@ -18,6 +18,9 @@ function initComponents() {
   chatInput = new ChatInput();
   personalityEditor = new PersonalityEditor();
 
+  // 初始化弹幕引擎
+  danmakuEngine.init(danmakuLayer);
+
   // 输入框提交回调
   chatInput.onSubmit = (text) => {
     const id = wsClient.send('question.ask', { text });
@@ -72,14 +75,14 @@ wsClient.on('screen.analyzed', (payload) => {
   const { scene, description, suggestion, danmaku_hint } = payload;
   sidePanel.setGameStatus(`场景: ${scene}`);
   if (danmaku_hint) {
-    danmakuLayer.send(danmaku_hint, 'normal', 'encouragement');
+    danmakuEngine.send(danmaku_hint, 'normal', 'encouragement');
   }
 });
 
 // 收到弹幕
 wsClient.on('danmaku.send', (payload) => {
   const { text, priority, style } = payload;
-  danmakuLayer.send(text, priority, style);
+  danmakuEngine.send(text, priority, style);
 });
 
 // 收到问题回答

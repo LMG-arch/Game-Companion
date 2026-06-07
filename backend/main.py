@@ -1,5 +1,5 @@
 # backend/main.py
-"""Python 后端入口：启动 WebSocket 服务器 + 屏幕捕获 + AI 分析 + 记忆系统 + 人格系统"""
+"""Python 后端入口：启动 WebSocket 服务器 + 屏幕捕获 + AI 分析 + 记忆系统 + 人格系统 + 弹幕引擎"""
 
 import asyncio
 import signal
@@ -12,6 +12,7 @@ from backend.ai.vision import get_scene_prompt, get_danmaku_hint
 from backend.memory.manager import MemoryManager
 from backend.personality.manager import PersonalityManager
 from backend.personality.generator import PersonalityGenerator
+from backend.danmaku.history import DanmakuHistory
 from backend.utils.port_file import write_port, cleanup_port
 from backend.utils.logger import logger
 
@@ -35,6 +36,9 @@ async def main():
     # 创建人格管理器
     personality_manager = PersonalityManager(personality_config)
     personality_generator = PersonalityGenerator(ai_engine)
+
+    # 创建弹幕历史
+    danmaku_history = DanmakuHistory()
 
     # 启动时执行记忆维护
     await memory_manager.maintain()
@@ -126,6 +130,15 @@ async def main():
                     "style": "encouragement",
                 })
 
+                # 保存弹幕历史
+                danmaku_history.add(
+                    text=danmaku_hint,
+                    priority="normal",
+                    style="encouragement",
+                    scene=scene,
+                    personality_id=personality_manager.active_id,
+                )
+
                 # 记录到记忆系统
                 await memory_manager.write(
                     text=f"场景: {scene}, {description}",
@@ -176,6 +189,8 @@ async def main():
     await capturer.stop()
     capture_task.cancel()
     memory_manager.store.close()
+    danmaku_history.cleanup()
+    danmaku_history.close()
     await server.stop()
     cleanup_port()
     logger.info("后端已关闭")
