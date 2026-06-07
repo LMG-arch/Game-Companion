@@ -120,10 +120,21 @@ async def main():
     # 设置保存处理器
     def handle_settings_save(payload: dict) -> dict:
         """保存配置"""
+        import json
         new_config = payload.get("config", {})
-        for section, values in new_config.items():
-            if isinstance(values, dict):
-                config.update(section, values)
+
+        # 深度合并配置
+        def deep_merge(base: dict, update: dict) -> dict:
+            for key, value in update.items():
+                if key in base and isinstance(base[key], dict) and isinstance(value, dict):
+                    deep_merge(base[key], value)
+                else:
+                    base[key] = value
+            return base
+
+        # 合并到当前配置
+        current = config.data
+        deep_merge(current, new_config)
         config.save()
         return {"success": True}
 
