@@ -63,12 +63,19 @@ ipcRenderer.on('python-ready', (event, { port }) => {
 wsClient.on('connected', () => {
   topBar.setStatus('已连接', '#4caf50');
   sidePanel.setContent('<p style="color: #4caf50;">✅ 已连接到后端</p>');
-  bubble.setMessage('已连接！');
+  bubble.setAIStatus('online', '已连接后端');
 });
 
 wsClient.on('disconnected', () => {
   topBar.setStatus('已断开', '#f44336');
   sidePanel.setContent('<p style="color: #f44336;">❌ 连接断开，正在重连...</p>');
+  bubble.setAIStatus('offline', '连接断开');
+});
+
+// AI 状态变化
+wsClient.on('ai.status', (payload) => {
+  const { status, message } = payload;
+  bubble.setAIStatus(status, message);
 });
 
 // 收到场景分析结果

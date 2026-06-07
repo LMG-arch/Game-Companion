@@ -1,111 +1,139 @@
 // frontend/renderer/components/Bubble.js
 /**
  * 浮动气泡组件
- * 显示鼓励语、快捷操作
+ * 显示 AI 状态、快捷操作
  */
 
 class Bubble {
   constructor() {
     this.element = null;
     this.visible = true;
-    this.messages = [
-      '加油！你可以的！',
-      '太棒了！',
-      '继续努力！',
-      '相信自己！'
-    ];
+    this.aiStatus = 'offline'; // offline/online/error
     this.init();
   }
 
   init() {
     this.element = document.createElement('div');
     this.element.id = 'bubble';
-    this.element.className = 'module';
     this.element.style.cssText = `
       position: fixed;
       bottom: 20px;
       left: 20px;
-      width: 120px;
-      height: 120px;
+      width: 80px;
+      height: 80px;
       z-index: 40;
-      pointer-events: none;
-      transition: transform 0.3s ease, opacity 0.3s ease;
+      pointer-events: auto;
+      transition: transform 0.2s ease;
       cursor: pointer;
     `;
 
     this.element.innerHTML = `
-      <div style="
+      <div id="bubble-inner" style="
         width: 100%;
         height: 100%;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        background: rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.85);
         border-radius: 50%;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         backdrop-filter: blur(10px);
         border: 2px solid rgba(255, 255, 255, 0.2);
+        transition: border-color 0.3s ease;
       ">
-        <span style="font-size: 32px; margin-bottom: 4px;">🤖</span>
-        <span id="bubble-text" style="font-size: 11px; text-align: center; padding: 0 8px; color: rgba(255,255,255,0.9);">加油！</span>
+        <span style="font-size: 28px;">🤖</span>
+        <span id="bubble-status" style="font-size: 9px; color: #f44336; margin-top: 2px;">离线</span>
+      </div>
+      <div id="bubble-tooltip" style="
+        display: none;
+        position: absolute;
+        bottom: 90px;
+        left: 0;
+        background: rgba(0, 0, 0, 0.95);
+        border-radius: 8px;
+        padding: 10px 14px;
+        min-width: 150px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      ">
+        <p id="tooltip-status" style="font-size: 12px; color: #f44336; margin: 0 0 6px 0;">AI 状态：离线</p>
+        <p id="tooltip-info" style="font-size: 11px; color: rgba(255,255,255,0.6); margin: 0;">等待连接...</p>
       </div>
     `;
 
     document.body.appendChild(this.element);
 
-    // 鼠标悬停时可交互
+    // 鼠标悬停显示详情
     this.element.addEventListener('mouseenter', () => {
-      this.element.style.pointerEvents = 'auto';
       this.element.style.transform = 'scale(1.1)';
+      this.element.querySelector('#bubble-tooltip').style.display = 'block';
+      // 通知主进程禁用点击穿透
       if (window.ipcRenderer) {
         window.ipcRenderer.send('set-ignore-mouse-events', false);
       }
     });
 
     this.element.addEventListener('mouseleave', () => {
-      this.element.style.pointerEvents = 'none';
       this.element.style.transform = 'scale(1)';
+      this.element.querySelector('#bubble-tooltip').style.display = 'none';
+      // 恢复点击穿透
       if (window.ipcRenderer) {
         window.ipcRenderer.send('set-ignore-mouse-events', true, { forward: true });
       }
     });
 
-    // 点击切换消息
+    // 点击打开设置
     this.element.addEventListener('click', () => {
-      this.randomMessage();
+      if (window.settingsPanel) {
+        window.settingsPanel.toggle();
+      }
     });
-
-    // 定时切换消息
-    setInterval(() => this.randomMessage(), 10000);
   }
 
-  randomMessage() {
-    const textEl = this.element.querySelector('#bubble-text');
-    if (textEl) {
-      const msg = this.messages[Math.floor(Math.random() * this.messages.length)];
-      textEl.textContent = msg;
-    }
+  /**
+   * 设置 AI 状态
+   * @param {string} status - offline/online/error
+   * @param {string} info - 额外信息
+   */
+  setAIStatus(status, info = '') {
+    this.aiStatus = status;
+    const inner = this.element.querySelector('#bubble-inner');
+    const statusEl = this.element.querySelector('#bubble-status');
+    const tooltipStatus = this.element.querySelector('#tooltip-status');
+    const tooltipInfo = this.element.querySelector('#tooltip-info');
+
+    const statusMap = {
+      'online': { text: '在线', color: '#4caf50', border: 'rgba(76, 175, 80, 0.5)' },
+      'offline': { text: '离线', color: '#f44336', border: 'rgba(244, 67, 54, 0.5)' },
+      'error': { text: '错误', color: '#ff9800', border: 'rgba(255, 152, 0, 0.5)' },
+    };
+
+    const s = statusMap[status] || statusMap['offline'];
+    statusEl.textContent = s.text;
+    statusEl.style.color = s.color;
+    inner.style.borderColor = s.border;
+    tooltipStatus.textContent = `AI 状态：${s.text}`;
+    tooltipStatus.style.color = s.color;
+    tooltipInfo.textContent = info || this._getDefaultInfo(status);
   }
 
-  setMessage(text) {
-    const textEl = this.element.querySelector('#bubble-text');
-    if (textEl) {
-      textEl.textContent = text;
+  _getDefaultInfo(status) {
+    switch (status) {
+      case 'online': return '正常工作中';
+      case 'offline': return '未配置 API Key';
+      case 'error': return 'API 调用失败';
+      default: return '';
     }
   }
 
   show() {
-    this.element.classList.remove('hidden');
-    this.element.style.opacity = '1';
+    this.element.style.display = 'block';
     this.visible = true;
   }
 
   hide() {
-    this.element.style.opacity = '0';
-    setTimeout(() => {
-      this.element.classList.add('hidden');
-    }, 300);
+    this.element.style.display = 'none';
     this.visible = false;
   }
 
@@ -118,5 +146,4 @@ class Bubble {
   }
 }
 
-// 导出
 window.Bubble = Bubble;
