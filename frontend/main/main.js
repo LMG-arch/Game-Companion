@@ -7,9 +7,13 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const PythonManager = require('./python-manager');
+const Shortcuts = require('./shortcuts');
 
 // Python 进程管理器
 const pythonManager = new PythonManager();
+
+// 快捷键管理
+const shortcuts = new Shortcuts();
 
 // 主窗口
 let mainWindow = null;
@@ -70,6 +74,22 @@ app.whenReady().then(async () => {
     // 创建窗口
     createWindow();
 
+    // 注册快捷键
+    shortcuts.register({
+      toggleInput: () => {
+        if (mainWindow) mainWindow.webContents.send('shortcut', 'toggle-input');
+      },
+      toggleUI: () => {
+        if (mainWindow) mainWindow.webContents.send('shortcut', 'toggle-ui');
+      },
+      openSettings: () => {
+        if (mainWindow) mainWindow.webContents.send('shortcut', 'open-settings');
+      },
+      toggleDanmaku: () => {
+        if (mainWindow) mainWindow.webContents.send('shortcut', 'toggle-danmaku');
+      }
+    });
+
     // 通知渲染进程连接 WebSocket
     if (mainWindow) {
       mainWindow.webContents.on('did-finish-load', () => {
@@ -87,10 +107,12 @@ app.whenReady().then(async () => {
  */
 app.on('window-all-closed', async () => {
   console.log('正在关闭...');
+  shortcuts.unregisterAll();
   await pythonManager.shutdown();
   app.quit();
 });
 
 app.on('before-quit', async () => {
+  shortcuts.unregisterAll();
   await pythonManager.shutdown();
 });

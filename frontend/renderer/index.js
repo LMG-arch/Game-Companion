@@ -1,23 +1,49 @@
 // frontend/renderer/index.js
 /**
  * 前端入口 JS
- * 初始化 WebSocket 连接，处理消息
+ * 初始化所有 UI 组件，处理 WebSocket 消息
  */
 
 const { ipcRenderer } = require('electron');
 
-const statusEl = document.getElementById('status');
-const testResultEl = document.getElementById('test-result');
+// 全局组件实例
+let topBar, sidePanel, bubble, danmakuLayer, chatInput;
 
-// 更新连接状态显示
-function updateStatus(connected) {
-  if (connected) {
-    statusEl.textContent = '✅ 已连接';
-    statusEl.className = 'connected';
-  } else {
-    statusEl.textContent = '❌ 已断开';
-    statusEl.className = 'disconnected';
+// 初始化组件
+function initComponents() {
+  topBar = new TopBar();
+  sidePanel = new SidePanel();
+  bubble = new Bubble();
+  danmakuLayer = new DanmakuLayer();
+  chatInput = new ChatInput();
+
+  // 输入框提交回调
+  chatInput.onSubmit = (text) => {
+    const id = wsClient.send('question.ask', { text });
+    console.log(`已发送提问: ${text}`);
+    sidePanel.setContent(`<p>正在搜索: ${text}...</p>`);
+  };
+
+  // 设置面板按钮（占位）
+  const settingsBtn = document.getElementById('btn-settings');
+  if (settingsBtn) {
+    settingsBtn.addEventListener('click', () => {
+      alert('设置面板开发中...');
+    });
   }
+
+  // 搜索按钮
+  const searchBtn = document.getElementById('btn-search');
+  if (searchBtn) {
+    searchBtn.addEventListener('click', () => {
+      chatInput.toggle();
+    });
+  }
+
+  // 初始化点击穿透
+  clickThrough.init(ipcRenderer);
+
+  console.log('UI 组件已初始化');
 }
 
 // 监听 Python 就绪事件
@@ -28,59 +54,74 @@ ipcRenderer.on('python-ready', (event, { port }) => {
 
 // WebSocket 事件监听
 wsClient.on('connected', () => {
-  updateStatus(true);
-  testResultEl.textContent = '已连接到后端';
+  topBar.setStatus('已连接', '#4caf50');
+  sidePanel.setContent('<p style="color: #4caf50;">✅ 已连接到后端</p>');
+  bubble.setMessage('已连接！');
 });
 
 wsClient.on('disconnected', () => {
-  updateStatus(false);
+  topBar.setStatus('已断开', '#f44336');
+  sidePanel.setContent('<p style="color: #f44336;">❌ 连接断开，正在重连...</p>');
 });
 
-// 收到 pong
-wsClient.on('pong', (payload) => {
-  testResultEl.textContent = `收到 Pong: ${JSON.stringify(payload)}`;
+// 收到场景分析结果
+wsClient.on('screen.analyzed', (payload) => {
+  const { scene, description, suggestion, danmaku_hint } = payload;
+  sidePanel.setGameStatus(`场景: ${scene}`);
+  if (danmaku_hint) {
+    danmakuLayer.send(danmaku_hint, 'normal', 'encouragement');
+  }
+});
+
+// 收到弹幕
+wsClient.on('danmaku.send', (payload) => {
+  const { text, priority, style } = payload;
+  danmakuLayer.send(text, priority, style);
 });
 
 // 收到问题回答
 wsClient.on('question.answer.result', (payload) => {
-  testResultEl.textContent = `回答: ${JSON.stringify(payload)}`;
+  const { answer, sources } = payload;
+  let html = `<p>${answer}</p>`;
+  if (sources && sources.length > 0) {
+    html += '<div style="margin-top: 8px; font-size: 11px; color: rgba(255,255,255,0.6);">';
+    sources.forEach(s => {
+      html += `<p>📎 <a href="${s.url}" style="color: #64b5f6;">${s.title}</a></p>`;
+    });
+    html += '</div>';
+  }
+  sidePanel.setContent(html);
 });
 
 // 收到错误
 wsClient.on('error', (payload) => {
-  testResultEl.textContent = `错误: ${payload.message}`;
+  console.error('错误:', payload);
+  sidePanel.setContent(`<p style="color: #f44336;">错误: ${payload.message}</p>`);
 });
 
-// 测试按钮
-document.getElementById('btn-ping').addEventListener('click', () => {
-  const id = wsClient.send('ping');
-  testResultEl.textContent = `已发送 Ping (id: ${id})`;
+// 监听主进程快捷键消息
+ipcRenderer.on('shortcut', (event, action) => {
+  switch (action) {
+    case 'toggle-input':
+      chatInput.toggle();
+      break;
+    case 'toggle-ui':
+      topBar.toggle();
+      sidePanel.toggle();
+      bubble.toggle();
+      break;
+    case 'open-settings':
+      alert('设置面板开发中...');
+      break;
+    case 'toggle-danmaku':
+      danmakuLayer.toggle();
+      break;
+  }
 });
 
-document.getElementById('btn-question').addEventListener('click', () => {
-  const id = wsClient.send('question.ask', { text: '测试问题' });
-  testResultEl.textContent = `已发送提问 (id: ${id})`;
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', () => {
+  initComponents();
 });
-
-// 点击穿透控制：鼠标进入可交互元素时禁用穿透，离开时恢复
-document.querySelectorAll('button, input, .interactive').forEach(el => {
-  el.addEventListener('mouseenter', () => {
-    ipcRenderer.send('set-ignore-mouse-events', false);
-  });
-  el.addEventListener('mouseleave', () => {
-    ipcRenderer.send('set-ignore-mouse-events', true, { forward: true });
-  });
-});
-
-// 测试区域整体可交互
-const testArea = document.getElementById('test-area');
-if (testArea) {
-  testArea.addEventListener('mouseenter', () => {
-    ipcRenderer.send('set-ignore-mouse-events', false);
-  });
-  testArea.addEventListener('mouseleave', () => {
-    ipcRenderer.send('set-ignore-mouse-events', true, { forward: true });
-  });
-}
 
 console.log('前端已加载');

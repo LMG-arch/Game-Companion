@@ -1,0 +1,105 @@
+/* frontend/renderer/styles/global.css
+ * 全局样式 + CSS 变量
+ */
+
+:root {
+  /* 颜色变量 */
+  --color-bg: rgba(0, 0, 0, 0.85);
+  --color-bg-light: rgba(255, 255, 255, 0.1);
+  --color-text: #ffffff;
+  --color-text-secondary: rgba(255, 255, 255, 0.7);
+  --color-primary: #2196f3;
+  --color-primary-hover: #1976d2;
+  --color-success: #4caf50;
+  --color-error: #f44336;
+  --color-warning: #ff9800;
+
+  /* 字体 */
+  --font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+  --font-size-sm: 12px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 20px;
+
+  /* 间距 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+
+  /* 圆角 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* 阴影 */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
+
+  /* 过渡 */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: transparent;
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+  color: var(--color-text);
+  overflow: hidden;
+  user-select: none;
+  -webkit-app-region: no-drag;
+}
+
+/* 通用按钮样式 */
+.btn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-md);
+  transition: background var(--transition-fast);
+}
+
+.btn:hover {
+  background: var(--color-primary-hover);
+}
+
+/* 通用容器 */
+.panel {
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(10px);
+}
+
+/* 交互区域标记（用于点击穿透控制） */
+.interactive {
+  pointer-events: auto;
+}
+
+/* 隐藏状态 */
+.hidden {
+  display: none !important;
+}
+
+/* 模块容器 */
+.module {
+  position: fixed;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.module.interactive {
+  pointer-events: auto;
+}
