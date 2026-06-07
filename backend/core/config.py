@@ -1,6 +1,7 @@
 # backend/core/config.py
 """配置读取模块：从 config.json 加载配置，支持热加载"""
 
+import copy
 import json
 from pathlib import Path
 from typing import Any
@@ -108,11 +109,11 @@ class Config:
                 logger.info(f"配置已加载: {self.config_path}")
             except (json.JSONDecodeError, IOError) as e:
                 logger.error(f"配置文件读取失败: {e}，使用默认配置")
-                self._data = DEFAULT_CONFIG.copy()
+                self._data = copy.deepcopy(DEFAULT_CONFIG)
                 self.save()
         else:
             logger.info("配置文件不存在，创建默认配置")
-            self._data = DEFAULT_CONFIG.copy()
+            self._data = copy.deepcopy(DEFAULT_CONFIG)
             self.save()
 
     def save(self) -> None:

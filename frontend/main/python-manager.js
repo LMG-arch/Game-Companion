@@ -4,7 +4,7 @@
  * 负责启动、监控、关闭 Python 子进程
  */
 
-const { spawn } = require('child_process');
+const { spawn, execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
@@ -13,6 +13,25 @@ class PythonManager {
     this.process = null;
     this.portFile = path.join(process.env.TEMP || '/tmp', 'game-companion-port.txt');
     this.backendPath = path.join(__dirname, '..', '..', 'backend');
+    this.pythonCmd = this._findPython();
+  }
+
+  /**
+   * 查找可用的 Python 命令
+   */
+  _findPython() {
+    const commands = ['python', 'python3', 'py'];
+    for (const cmd of commands) {
+      try {
+        execSync(`${cmd} --version`, { stdio: 'ignore' });
+        console.log(`找到 Python: ${cmd}`);
+        return cmd;
+      } catch (e) {
+        // 继续尝试下一个
+      }
+    }
+    console.error('未找到 Python 解释器');
+    return 'python'; // 默认回退
   }
 
   /**
@@ -27,7 +46,7 @@ class PythonManager {
       }
 
       // 启动 Python 进程（设置 UTF-8 编码）
-      this.process = spawn('python', ['-m', 'backend.main'], {
+      this.process = spawn(this.pythonCmd, ['-m', 'backend.main'], {
         cwd: path.join(__dirname, '..', '..'),
         stdio: ['pipe', 'pipe', 'pipe'],
         shell: true,

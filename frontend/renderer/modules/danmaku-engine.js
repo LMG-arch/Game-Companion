@@ -14,6 +14,7 @@ class DanmakuEngine {
     this.layer = null;
     this.history = []; // 弹幕历史
     this.maxHistory = 1000;
+    this.blockedKeywords = []; // 阻止关键词
   }
 
   /**
@@ -31,6 +32,11 @@ class DanmakuEngine {
    * @param {string} style - 样式: encouragement/tutorial/comment
    */
   send(text, priority = 'normal', style = 'encouragement') {
+    // 检查阻止关键词
+    if (this.blockedKeywords.some(kw => text.includes(kw))) {
+      return;
+    }
+
     const now = Date.now();
     const timeSinceLastSend = now - this.lastSendTime;
 
@@ -207,6 +213,14 @@ class DanmakuEngine {
    */
   setDensity(maxPerSecond) {
     this.maxPerSecond = Math.max(1, Math.min(20, maxPerSecond));
+  }
+
+  /**
+   * 设置阻止关键词
+   * @param {Array} keywords - 关键词列表
+   */
+  setBlockedKeywords(keywords) {
+    this.blockedKeywords = keywords || [];
   }
 }
 

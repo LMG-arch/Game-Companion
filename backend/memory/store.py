@@ -127,6 +127,13 @@ class MemoryStore:
         """, (now, mem_id))
         self.conn.commit()
 
+    def update_importance(self, mem_id: str, importance: float) -> None:
+        """更新记忆重要性（不影响 embedding 等其他字段）"""
+        self.conn.execute("""
+            UPDATE memories SET importance = ? WHERE id = ?
+        """, (importance, mem_id))
+        self.conn.commit()
+
     def mark_unverified(self, mem_id: str) -> None:
         """标记为待验证"""
         self.conn.execute("UPDATE memories SET verified = 0 WHERE id = ?", (mem_id,))

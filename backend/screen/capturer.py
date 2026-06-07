@@ -65,12 +65,7 @@ class ScreenCapturer:
     async def stop(self) -> None:
         """停止截图循环"""
         self._running = False
-        if self._camera and not self._use_gdi:
-            try:
-                self._camera.stop()
-            except Exception:
-                pass
-            self._camera = None
+        self._camera = None
         logger.info("截图循环已停止")
 
     async def _capture_frame(self) -> None:

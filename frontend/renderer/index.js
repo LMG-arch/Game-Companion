@@ -172,14 +172,59 @@ wsClient.on('personality.generate.result', (payload) => {
 // 收到配置
 wsClient.on('settings.get.result', (payload) => {
   settingsPanel.setConfig(payload);
+  applyConfig(payload);
 });
 
 // 收到配置保存结果
 wsClient.on('settings.save.result', (payload) => {
   if (payload.success) {
     sidePanel.setContent('<p style="color: #4caf50;">✅ 配置已保存</p>');
+    // 重新加载配置以应用更改
+    if (wsClient.isConnected) {
+      wsClient.send('settings.get');
+    }
   }
 });
+
+/**
+ * 应用配置到 UI
+ */
+function applyConfig(config) {
+  if (!config) return;
+
+  // 模块开关
+  const modules = config.general?.modules || {};
+  if (topBar) {
+    if (modules.toolbar === false) topBar.hide();
+    else topBar.show();
+  }
+  if (sidePanel) {
+    if (modules.sidebar === false) sidePanel.hide();
+  }
+  if (bubble) {
+    if (modules.bubble === false) bubble.hide();
+    else bubble.show();
+  }
+  if (danmakuLayer) {
+    if (modules.danmaku === false) danmakuLayer.hide();
+    else danmakuLayer.show();
+  }
+
+  // 主题切换
+  const theme = config.ui?.theme || 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+
+  // 弹幕密度和阻止关键词
+  if (config.danmaku && danmakuEngine) {
+    danmakuEngine.setDensity(config.danmaku.density || 5);
+    danmakuEngine.setBlockedKeywords(config.danmaku.blocked_keywords || []);
+  }
+
+  // 透明度
+  if (config.ui?.opacity !== undefined) {
+    document.body.style.opacity = config.ui.opacity / 100;
+  }
+}
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {

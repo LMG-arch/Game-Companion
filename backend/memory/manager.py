@@ -140,11 +140,11 @@ class MemoryManager:
             self.store.delete(mem["id"])
             logger.info(f"过期记忆已删除: {mem['id']}")
 
-        # 低频衰减
+        # 低频衰减（仅更新 importance，不覆盖 embedding 等字段）
         stale = self.store.get_stale(months=3)
         for mem in stale:
             new_importance = mem["importance"] * 0.8
-            self.store.add({**mem, "importance": new_importance})
+            self.store.update_importance(mem["id"], new_importance)
             logger.info(f"低频记忆衰减: {mem['id']}")
 
         # 生成摘要

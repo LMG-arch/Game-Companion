@@ -167,6 +167,7 @@ async def main():
 
     async def on_frame(jpeg_bytes: bytes):
         """截图帧回调"""
+        nonlocal last_memory_write
         # 检查 AI 是否可用
         if not ai_engine.is_available():
             return
