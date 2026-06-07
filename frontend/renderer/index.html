@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>游戏伴侣</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: transparent;
+      font-family: 'Microsoft YaHei', sans-serif;
+      color: #fff;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* 状态显示 */
+    #status {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      padding: 8px 16px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 4px;
+      font-size: 14px;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    #status.connected {
+      color: #4caf50;
+    }
+
+    #status.disconnected {
+      color: #f44336;
+    }
+
+    /* 测试区域（开发用） */
+    #test-area {
+      position: fixed;
+      top: 50px;
+      left: 10px;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.8);
+      border-radius: 8px;
+      z-index: 1000;
+    }
+
+    #test-area button {
+      padding: 8px 16px;
+      margin: 4px;
+      background: #2196f3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #test-area button:hover {
+      background: #1976d2;
+    }
+
+    #test-result {
+      margin-top: 8px;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      font-size: 12px;
+      max-width: 300px;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div id="status" class="disconnected">⏳ 等待连接...</div>
+
+  <div id="test-area">
+    <div>
+      <button id="btn-ping">发送 Ping</button>
+      <button id="btn-question">测试提问</button>
+    </div>
+    <div id="test-result">等待操作...</div>
+  </div>
+
+  <script src="modules/web-socket.js"></script>
+  <script src="index.js"></script>
+</body>
+</html>

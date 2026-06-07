@@ -1,0 +1,86 @@
+// frontend/main/main.js
+/**
+ * Electron 主进程入口
+ * 创建透明覆盖窗口，管理 Python 子进程
+ */
+
+const { app, BrowserWindow } = require('electron');
+const path = require('path');
+const PythonManager = require('./python-manager');
+
+// Python 进程管理器
+const pythonManager = new PythonManager();
+
+// 主窗口
+let mainWindow = null;
+
+/**
+ * 创建透明覆盖窗口
+ */
+function createWindow() {
+  mainWindow = new BrowserWindow({
+    width: 1920,
+    height: 1080,
+    transparent: true,
+    frame: false,
+    alwaysOnTop: true,
+    fullscreen: true,
+    skipTaskbar: true,
+    resizable: false,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  });
+
+  mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
+
+  // 开发模式下打开 DevTools
+  if (process.argv.includes('--dev')) {
+    mainWindow.webContents.openDevTools({ mode: 'detach' });
+  }
+
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
+}
+
+/**
+ * 应用启动
+ */
+app.whenReady().then(async () => {
+  console.log('Electron 已启动');
+
+  // 启动 Python 子进程
+  try {
+    await pythonManager.start();
+    const port = pythonManager.getPort();
+    console.log(`Python 端口: ${port}`);
+
+    // 创建窗口
+    createWindow();
+
+    // 通知渲染进程连接 WebSocket
+    if (mainWindow) {
+      mainWindow.webContents.on('did-finish-load', () => {
+        mainWindow.webContents.send('python-ready', { port });
+      });
+    }
+  } catch (e) {
+    console.error('Python 启动失败:', e);
+    app.quit();
+  }
+});
+
+/**
+ * 应用关闭
+ */
+app.on('window-all-closed', async () => {
+  console.log('正在关闭...');
+  await pythonManager.shutdown();
+  app.quit();
+});
+
+app.on('before-quit', async () => {
+  await pythonManager.shutdown();
+});
