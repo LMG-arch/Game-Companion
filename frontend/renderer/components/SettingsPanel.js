@@ -494,9 +494,12 @@ class SettingsPanel {
     this.element.classList.remove('hidden');
     this.visible = true;
     this.loadConfig();
-    if (window.ipcRenderer) {
-      window.ipcRenderer.send('set-ignore-mouse-events', false);
-    }
+    // 延迟发送 IPC 确保 DOM 更新完成
+    setTimeout(() => {
+      if (window.ipcRenderer) {
+        window.ipcRenderer.send('set-ignore-mouse-events', false);
+      }
+    }, 50);
   }
 
   hide() {

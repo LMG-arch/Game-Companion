@@ -65,8 +65,12 @@ function createWindow() {
 ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
   if (mainWindow) {
     mainWindow.setIgnoreMouseEvents(ignore, options || {});
-    // 恢复穿透时确保窗口仍在最上层
-    if (ignore) {
+    if (!ignore) {
+      // 禁用穿透时，聚焦窗口以便接收输入
+      mainWindow.focus();
+      mainWindow.setAlwaysOnTop(true, 'screen-saver');
+    } else {
+      // 恢复穿透时确保窗口仍在最上层
       mainWindow.setAlwaysOnTop(true, 'screen-saver');
     }
   }
