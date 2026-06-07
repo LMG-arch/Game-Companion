@@ -42,6 +42,7 @@ class TopBar {
 
     // 鼠标悬停时禁用穿透
     this.element.addEventListener('mouseenter', () => {
+      clearTimeout(this._leaveTimer);
       if (window.clickThrough) {
         window.clickThrough.disable();
       }
@@ -49,7 +50,7 @@ class TopBar {
 
     this.element.addEventListener('mouseleave', () => {
       // 延迟恢复穿透，避免点击按钮时立即穿透
-      setTimeout(() => {
+      this._leaveTimer = setTimeout(() => {
         if (window.clickThrough && !this._isOverButton) {
           window.clickThrough.enable();
         }

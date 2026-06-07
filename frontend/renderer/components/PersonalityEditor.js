@@ -186,9 +186,9 @@ class PersonalityEditor {
     }
     this.element.classList.add('hidden');
     this.visible = false;
-    // 恢复穿透
+    // 强制恢复穿透（重置引用计数）
     if (window.clickThrough) {
-      window.clickThrough.enable();
+      window.clickThrough.forceEnable();
     }
   }
 

@@ -66,6 +66,7 @@ class Bubble {
 
     // 鼠标悬停显示详情并禁用穿透
     this.element.addEventListener('mouseenter', () => {
+      clearTimeout(this._leaveTimer);
       this.element.style.transform = 'scale(1.1)';
       this.element.querySelector('#bubble-tooltip').style.display = 'block';
       if (window.clickThrough) {
@@ -76,9 +77,12 @@ class Bubble {
     this.element.addEventListener('mouseleave', () => {
       this.element.style.transform = 'scale(1)';
       this.element.querySelector('#bubble-tooltip').style.display = 'none';
-      if (window.clickThrough) {
-        window.clickThrough.enable();
-      }
+      // 延迟恢复穿透，避免点击时穿透
+      this._leaveTimer = setTimeout(() => {
+        if (window.clickThrough) {
+          window.clickThrough.enable();
+        }
+      }, 100);
     });
 
     // 点击打开设置
