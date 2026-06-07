@@ -1,0 +1,24 @@
+# 依赖
+frontend/node_modules/
+
+# Python
+backend/__pycache__/
+backend/**/__pycache__/
+*.pyc
+
+# 日志
+*.log
+
+# 构建产物
+frontend/dist/
+frontend/out/
+
+# 配置文件（用户数据）
+config.json
+
+# 端口文件
+game-companion-port.txt
+
+# IDE
+.vscode/
+.idea/
