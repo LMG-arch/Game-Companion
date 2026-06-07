@@ -26,8 +26,7 @@ class DuckDuckGoProvider:
                     },
                 )
                 response.raise_for_status()
-
-            return self._parse_results(response.text, limit)
+                return self._parse_results(response.text, limit)
 
         except Exception as e:
             logger.error(f"DuckDuckGo 搜索失败: {e}")

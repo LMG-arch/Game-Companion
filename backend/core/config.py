@@ -62,7 +62,7 @@ DEFAULT_CONFIG = {
         "blocked_keywords": []
     },
     "search": {
-        "engine": "google",
+        "engine": "duckduckgo",
         "api_url": "",
         "api_key": "",
         "proxy": None

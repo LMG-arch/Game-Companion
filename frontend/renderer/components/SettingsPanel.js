@@ -71,7 +71,6 @@ class SettingsPanel {
 
     // 注册到点击穿透模块
     if (window.clickThrough) {
-      window.clickThrough.register(this.element);
     }
 
     // 添加样式
@@ -289,7 +288,7 @@ class SettingsPanel {
         </div>
         <div class="settings-item">
           <label>API Key</label>
-          <input type="text" id="s-ai-key" value="${c.api_key || ''}" placeholder="sk-xxx">
+          <input type="password" id="s-ai-key" value="${c.api_key || ''}" placeholder="sk-xxx">
         </div>
         <div class="settings-item">
           <label>模型</label>
@@ -392,7 +391,7 @@ class SettingsPanel {
         </div>
         <div class="settings-item">
           <label>API Key</label>
-          <input type="text" id="s-mem-vector-key" value="${c.vector?.api_key || ''}" placeholder="sk-xxx">
+          <input type="password" id="s-mem-vector-key" value="${c.vector?.api_key || ''}" placeholder="sk-xxx">
         </div>
         <div class="settings-item">
           <label>模型名称</label>
@@ -407,7 +406,7 @@ class SettingsPanel {
         </div>
         <div class="settings-item">
           <label>API Key</label>
-          <input type="text" id="s-mem-reranker-key" value="${c.reranker?.api_key || ''}" placeholder="xxx">
+          <input type="password" id="s-mem-reranker-key" value="${c.reranker?.api_key || ''}" placeholder="xxx">
         </div>
       </div>
       <div class="settings-group">

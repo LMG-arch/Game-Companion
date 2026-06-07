@@ -127,7 +127,6 @@ async def main():
     # 设置保存处理器
     def handle_settings_save(payload: dict) -> dict:
         """保存配置"""
-        import json
         new_config = payload.get("config", {})
 
         # 深度合并配置
@@ -253,10 +252,27 @@ async def main():
         except NotImplementedError:
             pass
 
+    # 监听 stdin 的 shutdown 命令（Windows 兼容）
+    async def watch_stdin():
+        import sys
+        while not stop_event.is_set():
+            try:
+                line = await asyncio.get_event_loop().run_in_executor(None, sys.stdin.readline)
+                if line and 'shutdown' in line.strip().lower():
+                    logger.info("收到 stdin shutdown 命令")
+                    stop_event.set()
+                    break
+            except Exception:
+                break
+
+    stdin_task = asyncio.create_task(watch_stdin())
+
     try:
         await stop_event.wait()
     except KeyboardInterrupt:
         logger.info("收到 Ctrl+C")
+
+    stdin_task.cancel()
 
     # 清理
     await capturer.stop()

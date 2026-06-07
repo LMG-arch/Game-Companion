@@ -6,6 +6,9 @@ from backend.utils.logger import logger
 
 
 # 场景类型
+
+
+# 场景类型
 SCENE_TYPES = {
     "combat": "战斗",
     "exploration": "探索",

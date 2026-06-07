@@ -42,7 +42,6 @@ class TopBar {
 
     // 注册到点击穿透模块
     if (window.clickThrough) {
-      window.clickThrough.register(this.element);
     }
   }
 

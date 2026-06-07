@@ -3,8 +3,12 @@
 
 import asyncio
 import hashlib
+import io
 import time
 from typing import Callable, Awaitable, Optional
+
+import numpy as np
+from PIL import Image, ImageGrab
 
 from backend.utils.logger import logger
 
@@ -114,9 +118,6 @@ class ScreenCapturer:
 
     def _capture_gdi(self):
         """使用 PIL GDI 截图（备用方案）"""
-        from PIL import ImageGrab
-        import numpy as np
-
         try:
             screenshot = ImageGrab.grab()
             # PIL.Image -> numpy array (BGR)
@@ -137,9 +138,6 @@ class ScreenCapturer:
 
     def _frame_to_jpeg(self, frame) -> bytes:
         """将帧转换为 JPEG 字节"""
-        from PIL import Image
-        import io
-
         # BGR -> RGB
         rgb_frame = frame[:, :, ::-1]
         img = Image.fromarray(rgb_frame)

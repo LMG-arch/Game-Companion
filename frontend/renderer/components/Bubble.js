@@ -66,7 +66,6 @@ class Bubble {
 
     // 注册到点击穿透模块
     if (window.clickThrough) {
-      window.clickThrough.register(this.element);
     }
 
     // 鼠标悬停显示详情
