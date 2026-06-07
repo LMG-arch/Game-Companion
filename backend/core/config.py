@@ -92,8 +92,9 @@ class Config:
     """配置管理器"""
 
     def __init__(self, config_path: Path | None = None):
+        # 项目根目录下的 config.json
         self.config_path = config_path or (
-            Path.home() / "AppData" / "Roaming" / "游戏伴侣" / "config.json"
+            Path(__file__).parent.parent.parent / "config.json"
         )
         self._data: dict = {}
         self.load()
