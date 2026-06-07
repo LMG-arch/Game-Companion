@@ -25,10 +25,26 @@
 
 ```
 游戏伴侣/
-├── frontend/           ← Electron 前端（源码）
-├── backend/            ← Python 后端（源码）
-├── docs/               ← 设计文档
-├── start.bat           ← 一键启动
+├── frontend/                  ← Electron 前端
+│   ├── main/
+│   │   ├── main.js            ← 主进程入口
+│   │   └── python-manager.js  ← Python 进程管理
+│   ├── renderer/
+│   │   ├── index.html         ← 页面入口
+│   │   ├── index.js           ← 入口 JS
+│   │   └── modules/
+│   │       └── web-socket.js  ← WebSocket 客户端
+│   └── package.json
+├── backend/                   ← Python 后端
+│   ├── main.py                ← 后端入口
+│   ├── core/
+│   │   ├── config.py          ← 配置读取
+│   │   └── websocket_server.py ← WebSocket 服务器
+│   └── utils/
+│       ├── logger.py          ← 日志模块
+│       └── port_file.py       ← 端口发现
+├── docs/                      ← 设计文档
+├── start.bat                  ← 一键启动
 └── README.md
 ```
 
@@ -52,6 +68,7 @@
 
 ## 变更记录
 
+- 2026-06-07：阶段 1 实现 — 创建后端核心模块（日志、配置、端口发现、WebSocket 服务器）和前端核心文件（主进程、Python 管理、WebSocket 客户端、页面入口）
 - 2026-06-07：创建阶段 1 详细实现计划（13 个任务，含完整代码和验证步骤）
 - 2026-06-07：补充设计规格（通信协议 payload、config.json 结构、人格 JSON 结构、AI 调用参数、向量/重排 API 接口、错误处理策略）；补充实现计划（各阶段子任务、验证标准、修正依赖图）
 - 2026-06-07：项目初始化，创建设计文档和 CLAUDE.md
