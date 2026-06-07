@@ -546,14 +546,41 @@ class SettingsPanel {
   }
 
   show() {
+    // 创建背景遮罩
+    if (!this.backdrop) {
+      this.backdrop = document.createElement('div');
+      this.backdrop.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 99;
+      `;
+      this.backdrop.addEventListener('click', () => this.hide());
+      document.body.appendChild(this.backdrop);
+    }
+    this.backdrop.style.display = 'block';
     this.element.classList.remove('hidden');
     this.visible = true;
     this.loadConfig();
+    // 禁用穿透
+    if (window.clickThrough) {
+      window.clickThrough.disable();
+    }
   }
 
   hide() {
+    if (this.backdrop) {
+      this.backdrop.style.display = 'none';
+    }
     this.element.classList.add('hidden');
     this.visible = false;
+    // 恢复穿透
+    if (window.clickThrough) {
+      window.clickThrough.enable();
+    }
   }
 
   toggle() {

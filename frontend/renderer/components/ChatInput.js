@@ -98,11 +98,19 @@ class ChatInput {
     if (input) {
       input.focus();
     }
+    // 禁用穿透
+    if (window.clickThrough) {
+      window.clickThrough.disable();
+    }
   }
 
   hide() {
     this.element.classList.add('hidden');
     this.visible = false;
+    // 恢复穿透
+    if (window.clickThrough) {
+      window.clickThrough.enable();
+    }
   }
 
   toggle() {

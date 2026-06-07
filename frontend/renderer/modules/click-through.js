@@ -1,67 +1,41 @@
 // frontend/renderer/modules/click-through.js
 /**
  * 点击穿透模块
- * 使用 setIgnoreMouseEvents + mousemove 检测交互区域
+ * 面板打开时禁用穿透，面板关闭时恢复穿透
  */
 
 class ClickThrough {
   constructor() {
-    this.interactiveElements = [];
-    this.isOverInteractive = false;
+    this.isIgnoreMouse = true;
   }
 
   init() {
-    // 监听鼠标移动（forward: true 时窗口会收到 mousemove）
-    document.addEventListener('mousemove', (e) => {
-      this._checkMousePosition(e.clientX, e.clientY);
-    });
-
-    // 鼠标离开窗口时恢复穿透
-    document.addEventListener('mouseleave', () => {
-      if (this.isOverInteractive) {
-        this.isOverInteractive = false;
-        this._setIgnoreMouse(true);
-      }
-    });
+    // 初始状态：穿透
+    this._setIgnoreMouse(true);
   }
 
   /**
-   * 注册可交互元素
-   * @param {HTMLElement} element
+   * 禁用穿透（面板打开时调用）
    */
-  register(element) {
-    if (element && !this.interactiveElements.includes(element)) {
-      this.interactiveElements.push(element);
+  disable() {
+    if (this.isIgnoreMouse) {
+      this.isIgnoreMouse = false;
+      this._setIgnoreMouse(false);
     }
   }
 
   /**
-   * 检查鼠标是否在交互区域上
+   * 恢复穿透（面板关闭时调用）
    */
-  _checkMousePosition(x, y) {
-    let overInteractive = false;
-
-    for (const el of this.interactiveElements) {
-      if (el.classList.contains('hidden') || el.style.display === 'none') {
-        continue;
-      }
-
-      const rect = el.getBoundingClientRect();
-      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-        overInteractive = true;
-        break;
-      }
-    }
-
-    if (overInteractive !== this.isOverInteractive) {
-      this.isOverInteractive = overInteractive;
-      this._setIgnoreMouse(!overInteractive);
+  enable() {
+    if (!this.isIgnoreMouse) {
+      this.isIgnoreMouse = true;
+      this._setIgnoreMouse(true);
     }
   }
 
   /**
    * 设置点击穿透
-   * @param {boolean} ignore - true=穿透，false=可交互
    */
   _setIgnoreMouse(ignore) {
     if (window.electronAPI) {
