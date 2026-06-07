@@ -385,21 +385,39 @@ class SettingsPanel {
     const c = this.config.memory || {};
     return `
       <div class="settings-group">
-        <h3>记忆设置</h3>
+        <h3>向量检索设置</h3>
         <div class="settings-item">
-          <label>向量 API 地址</label>
-          <input type="text" id="s-mem-vector-url" value="${c.vector?.api_url || ''}">
+          <label>API 地址</label>
+          <input type="text" id="s-mem-vector-url" value="${c.vector?.api_url || ''}" placeholder="https://api.openai.com/v1">
         </div>
         <div class="settings-item">
-          <label>向量 API Key</label>
-          <input type="text" id="s-mem-vector-key" value="${c.vector?.api_key || ''}">
+          <label>API Key</label>
+          <input type="text" id="s-mem-vector-key" value="${c.vector?.api_key || ''}" placeholder="sk-xxx">
         </div>
         <div class="settings-item">
-          <label>Top K</label>
+          <label>模型名称</label>
+          <input type="text" id="s-mem-vector-model" value="${c.vector?.model || ''}" placeholder="text-embedding-3-small">
+        </div>
+      </div>
+      <div class="settings-group">
+        <h3>重排模型设置</h3>
+        <div class="settings-item">
+          <label>API 地址</label>
+          <input type="text" id="s-mem-reranker-url" value="${c.reranker?.api_url || ''}" placeholder="https://api.cohere.com/v1">
+        </div>
+        <div class="settings-item">
+          <label>API Key</label>
+          <input type="text" id="s-mem-reranker-key" value="${c.reranker?.api_key || ''}" placeholder="xxx">
+        </div>
+      </div>
+      <div class="settings-group">
+        <h3>检索参数</h3>
+        <div class="settings-item">
+          <label>Top K（召回数量）</label>
           <input type="number" id="s-mem-topk" value="${c.top_k || 20}" min="5" max="50">
         </div>
         <div class="settings-item">
-          <label>Top N</label>
+          <label>Top N（最终数量）</label>
           <input type="number" id="s-mem-topn" value="${c.top_n || 8}" min="3" max="20">
         </div>
       </div>
@@ -450,6 +468,18 @@ class SettingsPanel {
     config.search = config.search || {};
     config.search.engine = this._getVal('s-search-engine');
     config.search.api_url = this._getVal('s-search-url');
+
+    // Memory
+    config.memory = config.memory || {};
+    config.memory.vector = config.memory.vector || {};
+    config.memory.vector.api_url = this._getVal('s-mem-vector-url');
+    config.memory.vector.api_key = this._getVal('s-mem-vector-key');
+    config.memory.vector.model = this._getVal('s-mem-vector-model');
+    config.memory.reranker = config.memory.reranker || {};
+    config.memory.reranker.api_url = this._getVal('s-mem-reranker-url');
+    config.memory.reranker.api_key = this._getVal('s-mem-reranker-key');
+    config.memory.top_k = parseInt(this._getVal('s-mem-topk') || 20);
+    config.memory.top_n = parseInt(this._getVal('s-mem-topn') || 8);
 
     return config;
   }

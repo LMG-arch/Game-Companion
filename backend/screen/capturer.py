@@ -1,5 +1,5 @@
 # backend/screen/capturer.py
-"""屏幕捕获模块：dxcam 截图 + 变化检测 + 静默降频"""
+"""屏幕捕获模块：dxcam 截图 + GDI 备用方案 + 变化检测 + 静默降频"""
 
 import asyncio
 import hashlib
@@ -19,19 +19,13 @@ class ScreenCapturer:
         silent_fps: float = 0.2,
         silent_threshold: int = 5,
     ):
-        """
-        Args:
-            on_frame: 帧回调函数，接收 JPEG 字节
-            fps: 全速帧率
-            silent_fps: 静默帧率
-            silent_threshold: 连续无变化帧数后进入静默模式
-        """
         self.on_frame = on_frame
         self.fps = fps
         self.silent_fps = silent_fps
         self.silent_threshold = silent_threshold
 
         self._camera = None
+        self._use_gdi = False  # 是否使用 GDI 备用方案
         self._running = False
         self._last_hash: Optional[str] = None
         self._unchanged_count = 0
@@ -39,16 +33,19 @@ class ScreenCapturer:
 
     async def start(self) -> None:
         """启动截图循环"""
+        # 尝试初始化 dxcam
         try:
             import dxcam
             self._camera = dxcam.create(output_color="BGR")
-            logger.info("屏幕捕获已初始化")
+            logger.info("屏幕捕获已初始化（dxcam/DXGI）")
         except Exception as e:
-            logger.error(f"屏幕捕获初始化失败: {e}")
-            return
+            logger.warning(f"dxcam 初始化失败: {e}")
+            logger.info("切换到 GDI 备用方案（性能较低）")
+            self._use_gdi = True
 
         self._running = True
-        logger.info(f"截图循环启动: {self.fps} FPS")
+        fps = self.silent_fps if self._silent_mode else self.fps
+        logger.info(f"截图循环启动: {fps} FPS")
 
         while self._running:
             try:
@@ -64,18 +61,22 @@ class ScreenCapturer:
     async def stop(self) -> None:
         """停止截图循环"""
         self._running = False
-        if self._camera:
-            self._camera.stop()
+        if self._camera and not self._use_gdi:
+            try:
+                self._camera.stop()
+            except Exception:
+                pass
             self._camera = None
         logger.info("截图循环已停止")
 
     async def _capture_frame(self) -> None:
         """捕获一帧"""
-        if not self._camera:
-            return
-
         try:
-            frame = self._camera.grab()
+            if self._use_gdi:
+                frame = self._capture_gdi()
+            else:
+                frame = self._capture_dxcam()
+
             if frame is None:
                 return
 
@@ -104,6 +105,28 @@ class ScreenCapturer:
 
         except Exception as e:
             logger.error(f"帧捕获失败: {e}")
+
+    def _capture_dxcam(self):
+        """使用 dxcam 截图"""
+        if not self._camera:
+            return None
+        return self._camera.grab()
+
+    def _capture_gdi(self):
+        """使用 PIL GDI 截图（备用方案）"""
+        from PIL import ImageGrab
+        import numpy as np
+
+        try:
+            screenshot = ImageGrab.grab()
+            # PIL.Image -> numpy array (BGR)
+            frame = np.array(screenshot)
+            # RGB -> BGR
+            frame = frame[:, :, ::-1].copy()
+            return frame
+        except Exception as e:
+            logger.error(f"GDI 截图失败: {e}")
+            return None
 
     def _compute_hash(self, frame) -> str:
         """计算帧哈希（降采样加速）"""
