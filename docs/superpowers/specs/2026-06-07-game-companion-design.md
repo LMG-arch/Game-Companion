@@ -157,6 +157,89 @@ Electron 主进程负责启动和终止 Python 子进程。启动流程:
 
 **关于**: 导出/导入全部配置
 
+### config.json 完整结构
+
+```json
+{
+  "general": {
+    "auto_launch": false,
+    "language": "zh-CN",
+    "modules": {
+      "toolbar": true,
+      "sidebar": true,
+      "bubble": true,
+      "danmaku": true
+    },
+    "shortcuts": {
+      "toggle_input": "Ctrl+Shift+Space",
+      "toggle_ui": "Ctrl+Shift+H",
+      "open_settings": "Ctrl+Shift+S",
+      "toggle_danmaku": "Ctrl+Shift+D"
+    }
+  },
+  "ui": {
+    "opacity": 90,
+    "theme": "dark",
+    "sidebar_width": 300,
+    "danmaku": {
+      "speed": 5,
+      "density": 5,
+      "font_size": 16,
+      "color": "#FFFFFF",
+      "font_family": "Microsoft YaHei"
+    }
+  },
+  "ai": {
+    "provider": "openai",
+    "api_url": "https://api.openai.com/v1",
+    "api_key": "",
+    "model": "gpt-4o",
+    "system_prompt": "你是一个游戏伴侣...",
+    "temperature": 0.7,
+    "max_tokens": 500,
+    "timeout": 30,
+    "retry_count": 2,
+    "fallback_provider": null
+  },
+  "game": {
+    "capture_fps": 1,
+    "silent_fps": 0.2,
+    "silent_threshold": 5,
+    "capture_region": "fullscreen"
+  },
+  "danmaku": {
+    "auto_enabled": true,
+    "encouragement_interval": 30,
+    "style": "auto",
+    "blocked_keywords": []
+  },
+  "search": {
+    "engine": "google",
+    "api_url": "",
+    "api_key": "",
+    "proxy": null
+  },
+  "memory": {
+    "vector": {
+      "api_url": "",
+      "api_key": "",
+      "model": ""
+    },
+    "reranker": {
+      "api_url": "",
+      "api_key": ""
+    },
+    "top_k": 20,
+    "top_n": 8,
+    "semantic_weight": 0.7,
+    "time_weight": 0.3
+  },
+  "personality": {
+    "active": "preset_soft"
+  }
+}
+```
+
 ---
 
 ## 5. 通信协议
@@ -173,19 +256,155 @@ WebSocket (localhost) 连接。Electron 通过读取 Python 写入的端口文�
 }
 ```
 
-### 核心消息类型
+### 核心消息类型及 Payload
 
-| 方向 | 类型 | 说明 |
-|------|------|------|
-| 🖥️→🐍 | `screen.capture` | 请求截图分析 |
-| 🐍→🖥️ | `screen.analyzed` | 场景识别结果 + AI 建议 |
-| 🐍→🖥️ | `danmaku.send` | AI 生成的弹幕，前端播放 |
-| 🖥️→🐍 | `question.ask` | 用户打字提问 |
-| 🐍→🖥️ | `question.answer` | 搜索结果 + AI 回复 |
-| 🐍→🖥️ | `memory.query_result` | 记忆检索测试结果 |
-| 🖥️→🐍 | `settings.updated` | 配置变更通知 |
-| 🐍→🖥️ | `ai.status` | AI 服务状态变化 |
-| 🖥️→🐍 | `shutdown` | Electron 关闭前通知后端退出 |
+#### 🖥️→🐍 `ping` 心跳
+```json
+{ "type": "ping", "id": "uuid", "payload": {} }
+```
+回复：`{ "type": "pong", "id": "同一uuid", "payload": {} }`
+
+#### 🖥️→🐍 `screen.capture` 请求截图分析
+```json
+{
+  "type": "screen.capture",
+  "id": "uuid",
+  "payload": {}
+}
+```
+
+#### 🐍→🖥️ `screen.analyzed` 场景识别结果
+```json
+{
+  "type": "screen.analyzed",
+  "id": "uuid",
+  "payload": {
+    "scene": "combat | exploration | menu | stuck | death | idle",
+    "confidence": 0.85,
+    "description": "玩家正在与 BOSS 战斗，血量剩余 30%",
+    "suggestion": "建议使用回复药水",
+    "danmaku_hint": "加油！你可以的！"
+  }
+}
+```
+
+#### 🐍→🖥️ `danmaku.send` 弹幕发送
+```json
+{
+  "type": "danmaku.send",
+  "id": "uuid",
+  "payload": {
+    "text": "太强了！",
+    "priority": "high | normal | low",
+    "style": "encouragement | tutorial | comment"
+  }
+}
+```
+
+#### 🖥️→🐍 `question.ask` 用户提问
+```json
+{
+  "type": "question.ask",
+  "id": "uuid",
+  "payload": {
+    "text": "这只 BOSS 怎么打？",
+    "context": "可选，当前游戏场景描述"
+  }
+}
+```
+
+#### 🐍→🖥️ `question.answer` AI 回答
+```json
+{
+  "type": "question.answer",
+  "id": "uuid",
+  "payload": {
+    "answer": "这只 BOSS 弱雷属性，建议...",
+    "sources": [
+      { "title": "攻略标题", "url": "https://..." }
+    ],
+    "confidence": 0.9
+  }
+}
+```
+
+#### 🐍→🖥️ `memory.query_result` 记忆检索结果
+```json
+{
+  "type": "memory.query_result",
+  "id": "uuid",
+  "payload": {
+    "query": "玩家偏好",
+    "results": [
+      {
+        "text": "玩家偏好使用弓箭武器",
+        "importance": 0.8,
+        "created_at": "2026-06-01T14:30:00"
+      }
+    ],
+    "total": 5,
+    "mode": "vector | keyword | empty"
+  }
+}
+```
+
+#### 🖥️→🐍 `settings.updated` 配置变更
+```json
+{
+  "type": "settings.updated",
+  "id": "uuid",
+  "payload": {
+    "section": "ai | game | danmaku | search | memory | personality",
+    "changes": {
+      "ai.provider": "openai",
+      "ai.model": "gpt-4o"
+    }
+  }
+}
+```
+
+#### 🐍→🖥️ `ai.status` AI 服务状态
+```json
+{
+  "type": "ai.status",
+  "id": "uuid",
+  "payload": {
+    "provider": "openai",
+    "status": "online | offline | error",
+    "message": "API key 无效"
+  }
+}
+```
+
+#### 🖥️→🐍 `shutdown` 关闭通知
+```json
+{ "type": "shutdown", "id": "uuid", "payload": {} }
+```
+
+#### 🖥️→🐍 `memory.test` 记忆检索测试
+```json
+{
+  "type": "memory.test",
+  "id": "uuid",
+  "payload": {
+    "query": "测试查询内容"
+  }
+}
+```
+回复：`memory.query_result`
+
+#### 🐍→🖥️ `error` 错误通知
+```json
+{
+  "type": "error",
+  "id": "uuid",
+  "payload": {
+    "code": "AI_TIMEOUT | SCREEN_CAPTURE_FAILED | MEMORY_ERROR",
+    "message": "AI 请求超时",
+    "recoverable": true
+  }
+}
+```
 
 ---
 
@@ -231,6 +450,39 @@ WebSocket (localhost) 连接。Electron 通过读取 Python 写入的端口文�
 本地 `%APPDATA%/游戏伴侣/personalities/` 目录下 JSON 文件存储。
 每次 AI 调用时将活跃人格的 system prompt 注入到消息中。
 切换人格后所有后续输出即时生效。
+
+### 6.5 人格 JSON 完整结构
+
+```json
+{
+  "id": "preset_soft",
+  "name": "软萌甜心",
+  "title": "你的专属啦啦队",
+  "avatar": null,
+  "dimensions": {
+    "gentle_tsundere": 0.9,
+    "humor_serious": 0.7,
+    "snark_kind": 0.2,
+    "active_calm": 0.8,
+    "talkative_quiet": 0.7
+  },
+  "catchphrases": ["的说~", "太棒了！", "加油哦~", "好厉害！"],
+  "background": "一个温柔可爱的虚拟伙伴，总是默默支持着玩家。",
+  "danmaku_examples": [
+    "加油的说~",
+    "太棒了！🥰",
+    "你一定可以的！",
+    "好厉害的操作！",
+    "慢慢来，不着急~",
+    "相信自己！",
+    "胜利就在眼前！"
+  ],
+  "system_prompt": "你是「软萌甜心」，一个温柔可爱的游戏伴侣。你说话带「的说~」口癖，总是积极鼓励玩家，用可爱的表情和语气表达支持。即使玩家失败了也要温柔安慰。",
+  "is_preset": true
+}
+```
+
+---
 
 ---
 
@@ -294,6 +546,68 @@ WebSocket (localhost) 连接。Electron 通过读取 Python 写入的端口文�
 ### 7.7 用户可见
 
 设置面板中: 记忆健康度(百分比)、总条数/活跃/归档/待验证/矛盾数、"测试检索"功能、"立即体检"按钮。
+
+### 7.8 向量检索 API 接口
+
+用户配置远程向量 API，接口格式兼容 OpenAI Embeddings：
+
+**请求**:
+```
+POST {api_url}/embeddings
+Authorization: Bearer {api_key}
+Content-Type: application/json
+
+{
+  "input": "查询文本",
+  "model": "text-embedding-3-small"
+}
+```
+
+**响应**:
+```json
+{
+  "data": [
+    {
+      "embedding": [0.1, 0.2, ...],
+      "index": 0
+    }
+  ]
+}
+```
+
+向量存储使用本地 SQLite + numpy 数组，检索时计算余弦相似度。
+
+### 7.9 重排模型 API 接口
+
+用户配置远程重排 API，接口格式：
+
+**请求**:
+```
+POST {api_url}/rerank
+Authorization: Bearer {api_key}
+Content-Type: application/json
+
+{
+  "query": "查询文本",
+  "documents": ["记忆1文本", "记忆2文本", ...],
+  "top_n": 8
+}
+```
+
+**响应**:
+```json
+{
+  "results": [
+    {
+      "index": 0,
+      "relevance_score": 0.95,
+      "document": "记忆1文本"
+    }
+  ]
+}
+```
+
+无配置时跳过重排，直接使用向量检索结果。
 
 ---
 
@@ -366,6 +680,37 @@ Python main.py 启动
 | 记忆 | 向量+重排 → 仅向量 → 关键词+时间 | 空上下文 |
 | AI | 主Provider → 备用Provider → 无 | 标记离线, 截图继续 |
 | 搜索 | 配置的引擎 → 无搜索 | AI 仅凭知识回答 |
+
+### AI 调用参数
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| temperature | 0.7 | 创造性，弹幕生成可调高到 0.9 |
+| max_tokens | 500 | 单次回复最大长度 |
+| timeout | 30s | 单次请求超时 |
+| retry_count | 2 | 失败重试次数 |
+| retry_delay | 1s → 2s → 4s | 指数退避 |
+
+**Provider 切换策略**:
+- 连续 3 次失败 → 标记当前 Provider 离线
+- 切换到 fallback_provider（如配置）
+- 所有 Provider 离线 → 标记 AI 不可用，截图循环继续
+- 每 60 秒尝试重新连接离线的 Provider
+
+### 错误处理策略
+
+| 场景 | 处理方式 |
+|------|---------|
+| WebSocket 断连 | 前端每 3 秒重连，指数退避（3s → 6s → 12s → 最大 30s） |
+| AI 请求超时 | 重试 2 次，仍失败则切换 Provider |
+| AI 返回格式错误 | 记录日志，丢弃该次结果，不展示给用户 |
+| 截图失败 | 记录日志，等待下一帧，连续 10 次失败则暂停 5 秒 |
+| 向量 API 不可用 | 降级到关键词检索 |
+| 重排 API 不可用 | 跳过重排，直接使用向量结果 |
+| 搜索引擎不可用 | AI 仅凭知识回答 |
+| config.json 读取失败 | 使用默认配置，创建新的 config.json |
+| Python 进程崩溃 | Electron 检测到进程退出，提示用户重启 |
+| 端口文件不存在 | Electron 每秒轮询，最多等待 30 秒 |
 
 ---
 
