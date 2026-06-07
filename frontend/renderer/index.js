@@ -6,6 +6,13 @@
 
 const { ipcRenderer } = require('electron');
 
+// HTML 转义函数，防止 XSS
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 // 全局组件实例
 let topBar, sidePanel, bubble, danmakuLayer, chatInput, personalityEditor, settingsPanel;
 
@@ -96,11 +103,14 @@ wsClient.on('danmaku.send', (payload) => {
 // 收到问题回答
 wsClient.on('question.answer.result', (payload) => {
   const { answer, sources } = payload;
-  let html = `<p>${answer}</p>`;
+  const safeAnswer = escapeHtml(answer || '');
+  let html = `<p>${safeAnswer}</p>`;
   if (sources && sources.length > 0) {
     html += '<div style="margin-top: 8px; font-size: 11px; color: rgba(255,255,255,0.6);">';
     sources.forEach(s => {
-      html += `<p>📎 <a href="${s.url}" style="color: #64b5f6;">${s.title}</a></p>`;
+      const safeTitle = escapeHtml(s.title || '');
+      const safeUrl = escapeHtml(s.url || '');
+      html += `<p>📎 <a href="${safeUrl}" style="color: #64b5f6;">${safeTitle}</a></p>`;
     });
     html += '</div>';
   }
@@ -174,6 +184,11 @@ ipcRenderer.on('shortcut', (event, action) => {
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
   initComponents();
+
+  // 监听气泡点击打开设置事件
+  window.addEventListener('open-settings', () => {
+    if (settingsPanel) settingsPanel.toggle();
+  });
 });
 
 console.log('前端已加载');

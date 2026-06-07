@@ -2,6 +2,7 @@
 """日志模块：统一日志格式和输出"""
 
 import logging
+import logging.handlers
 import sys
 from pathlib import Path
 
@@ -27,10 +28,15 @@ def setup_logger(name: str = "game-companion") -> logging.Logger:
     )
     console_handler.setFormatter(console_format)
 
-    # 文件输出
+    # 文件输出（轮转，最大 5MB，保留 3 个备份）
     log_dir = Path.home() / "AppData" / "Roaming" / "游戏伴侣" / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
-    file_handler = logging.FileHandler(log_dir / "game-companion.log", encoding="utf-8")
+    file_handler = logging.handlers.RotatingFileHandler(
+        log_dir / "game-companion.log",
+        maxBytes=5 * 1024 * 1024,  # 5MB
+        backupCount=3,
+        encoding="utf-8"
+    )
     file_handler.setLevel(logging.DEBUG)
     file_format = logging.Formatter(
         "[%(asctime)s] %(levelname)s %(name)s:%(lineno)d: %(message)s"

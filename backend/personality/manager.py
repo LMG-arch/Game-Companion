@@ -147,5 +147,6 @@ class PersonalityManager:
 
     def _save_config(self) -> None:
         """保存当前选择到配置"""
-        # 这里可以写入 config.json，暂时只在内存中
-        pass
+        from backend.core.config import config
+        config.set("personality.active", self.active_id)
+        config.save()

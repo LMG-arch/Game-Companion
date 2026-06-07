@@ -109,7 +109,15 @@ class WebSocketClient {
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
       if (this.url) {
-        this.connect(this.url.replace('ws://localhost:', ''));
+        // 从 URL 中提取端口号
+        try {
+          const port = new URL(this.url).port;
+          if (port) {
+            this.connect(parseInt(port));
+          }
+        } catch (e) {
+          console.error('URL 解析失败:', e);
+        }
       }
     }, this.reconnectDelay);
 

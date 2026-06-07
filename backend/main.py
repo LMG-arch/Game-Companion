@@ -144,6 +144,8 @@ async def main():
     server.on("memory.test", handle_memory_test)
 
     # 帧回调：发送到 AI 分析
+    last_memory_write = 0  # 上次记忆写入时间
+
     async def on_frame(jpeg_bytes: bytes):
         """截图帧回调"""
         try:
@@ -184,12 +186,16 @@ async def main():
                     personality_id=personality_manager.active_id,
                 )
 
-                # 记录到记忆系统
-                await memory_manager.write(
-                    text=f"场景: {scene}, {description}",
-                    context=suggestion,
-                    game="",
-                )
+                # 记录到记忆系统（限制频率，每 30 秒最多一次）
+                import time
+                now = time.time()
+                if now - last_memory_write >= 30:
+                    last_memory_write = now
+                    await memory_manager.write(
+                        text=f"场景: {scene}, {description}",
+                        context=suggestion,
+                        game="",
+                    )
 
         except Exception as e:
             logger.error(f"AI 分析失败: {e}")

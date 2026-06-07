@@ -1,6 +1,7 @@
 # backend/ai/vision.py
 """视觉理解模块：截图→文本描述→场景判断"""
 
+import random
 from backend.utils.logger import logger
 
 

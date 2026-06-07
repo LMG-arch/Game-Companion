@@ -85,9 +85,8 @@ class Bubble {
 
     // 点击打开设置
     this.element.addEventListener('click', () => {
-      if (window.settingsPanel) {
-        window.settingsPanel.toggle();
-      }
+      // 触发自定义事件，由 index.js 处理
+      window.dispatchEvent(new CustomEvent('open-settings'));
     });
   }
 

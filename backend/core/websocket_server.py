@@ -67,6 +67,9 @@ class WebSocketServer:
         if handler:
             try:
                 result = handler(message.get("payload", {}))
+                # 支持异步 handler
+                if asyncio.iscoroutine(result):
+                    result = await result
                 if result:
                     return {"type": f"{msg_type}.result", "id": msg_id, "payload": result}
             except Exception as e:
