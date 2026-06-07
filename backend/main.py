@@ -110,6 +110,25 @@ async def main():
 
     server.on("personality.generate", handle_personality_generate)
 
+    # 设置获取处理器
+    def handle_settings_get(payload: dict) -> dict:
+        """获取配置"""
+        return config.data
+
+    server.on("settings.get", handle_settings_get)
+
+    # 设置保存处理器
+    def handle_settings_save(payload: dict) -> dict:
+        """保存配置"""
+        new_config = payload.get("config", {})
+        for section, values in new_config.items():
+            if isinstance(values, dict):
+                config.update(section, values)
+        config.save()
+        return {"success": True}
+
+    server.on("settings.save", handle_settings_save)
+
     # 记忆测试处理器
     async def handle_memory_test(payload: dict) -> dict:
         """处理记忆检索测试"""

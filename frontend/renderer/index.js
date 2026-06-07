@@ -7,7 +7,7 @@
 const { ipcRenderer } = require('electron');
 
 // 全局组件实例
-let topBar, sidePanel, bubble, danmakuLayer, chatInput, personalityEditor;
+let topBar, sidePanel, bubble, danmakuLayer, chatInput, personalityEditor, settingsPanel;
 
 // 初始化组件
 function initComponents() {
@@ -17,6 +17,7 @@ function initComponents() {
   danmakuLayer = new DanmakuLayer();
   chatInput = new ChatInput();
   personalityEditor = new PersonalityEditor();
+  settingsPanel = new SettingsPanel();
 
   // 初始化弹幕引擎
   danmakuEngine.init(danmakuLayer);
@@ -28,12 +29,12 @@ function initComponents() {
     sidePanel.setContent(`<p>正在搜索: ${text}...</p>`);
   };
 
-  // 设置面板按钮（打开人格编辑器）
+  // 设置面板按钮（打开设置面板）
   const settingsBtn = document.getElementById('btn-settings');
   if (settingsBtn) {
     settingsBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      personalityEditor.toggle();
+      settingsPanel.toggle();
     });
   }
 
@@ -128,6 +129,18 @@ wsClient.on('personality.generate.result', (payload) => {
     personalityEditor.loadPersonalities();
   } else {
     sidePanel.setContent(`<p style="color: #f44336;">❌ 生成失败: ${error}</p>`);
+  }
+});
+
+// 收到配置
+wsClient.on('settings.get.result', (payload) => {
+  settingsPanel.setConfig(payload);
+});
+
+// 收到配置保存结果
+wsClient.on('settings.save.result', (payload) => {
+  if (payload.success) {
+    sidePanel.setContent('<p style="color: #4caf50;">✅ 配置已保存</p>');
   }
 });
 
