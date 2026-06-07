@@ -3,7 +3,6 @@
 
 import logging
 import sys
-import io
 from pathlib import Path
 
 
@@ -12,10 +11,14 @@ def setup_logger(name: str = "game-companion") -> logging.Logger:
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
 
-    # 控制台输出（使用 UTF-8 编码）
+    # 控制台输出（Windows 下强制 UTF-8）
     if sys.platform == "win32":
-        # Windows 下强制使用 UTF-8 输出
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+        try:
+            sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+            sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+        except Exception:
+            pass
+
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.INFO)
     console_format = logging.Formatter(
